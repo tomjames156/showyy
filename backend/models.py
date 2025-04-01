@@ -5,6 +5,7 @@ from flask_login import UserMixin
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     city = db.Column(db.String(100))
+    state = db.Column(db.String(100))
     country = db.Column(db.String(100))
     portfolios = db.relationship('Portfolio', backref='location', lazy=True)
 
@@ -12,6 +13,7 @@ class Location(db.Model):
         return{
             'id': self.id,
             'city': self.city,
+            'state': self.state,
             'country': self.country
         }
 
@@ -77,7 +79,7 @@ class User(UserMixin, db.Model,):
             'password': self.password,
             'first_name': self.first_name,
             'last_name': self.last_name,
-            'username': self.first_name,
+            'username': self.username,
             'verified': self.verified,
             'created_at': self.created_at,
             'portfolio': portfolio

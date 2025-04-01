@@ -1,0 +1,11 @@
+Create user programmatically
+
+INSERT INTO location (city, state, country) VALUES
+("Jabi", "Abuja", "Nigeria")
+
+Create portfolio and add user id and location id
+
+INSERT INTO social_link (link_type, link_value, portfolio_id) VALUES
+("Twitter", "www.twitter.com/tomisnakinwande", 2),
+("Github", "www.github.com/tomjames156", 2),
+("Instagram", "www.instagram.com/tomisin_akinwande", 2);

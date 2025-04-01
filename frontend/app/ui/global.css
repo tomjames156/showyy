@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@theme{
+  --breakpoint-xs: 30rem;
+}
+
+*{
+  scroll-behavior: smooth;
+  scroll-padding: 4rem;
+}
+
+.wavehand{
+  animation: waving-hand 2.5s infinite;
+  transform-origin: 70% 70%;
+}
+
+@keyframes waving-hand {
+
+  0%{
+    transform: rotate(0deg);
+  }
+
+  10%{
+    transform: rotate(14deg);
+  }
+
+  20%{
+    transform: rotate(-8deg);
+  }
+
+  30%{
+    transform: rotate(14deg);
+  }
+
+  40%{
+    transform: rotate(-4deg);
+  }
+
+  50%{
+    transform: rotate(10deg);
+  }
+
+  60%{
+    transform: rotate(0deg);
+  }
+
+  100%{
+    transform: rotate(0deg);
+  }
+}
+/* 
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+  
+body {
+    color: var(--foreground);
+    background: var(--background);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+@layer utilities {
+    .text-balance {
+        text-wrap: balance;
+    }
+} */
