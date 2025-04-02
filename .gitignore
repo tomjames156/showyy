@@ -1,5 +1,6 @@
 show_venv/
 
+*.db
 database.db
 folio.db
 static
@@ -10,3 +11,6 @@ backend/__pycache__/
 backend/tests.py
 todo
 queries.txt
+
+migrations/
+instance/

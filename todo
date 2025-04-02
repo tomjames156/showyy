@@ -1,6 +1,18 @@
 create new user and try addign a new profile pic to see if it would clear the directory before
-saving it
+saving it DONE
 
 add verify email functionality later on
 
 modify the update portfolio to make sure only role cna be updated
+
+highlight project must be just four
+
+pass tools as a string for creation or update DONE
+make sure the tools string input from the frontend doesnt end with a comma
+
+give proj img username-proj-id.ext
+make tool_name unique DONE
+
+test how flashing errors works in the frontend
+
+view for associating tools with a project DONE

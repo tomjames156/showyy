@@ -3,7 +3,7 @@ import os
 from flask import Blueprint, current_app, request, jsonify, flash, redirect, url_for, render_template
 from flask_restful import Resource, marshal_with
 from werkzeug.utils import secure_filename
-from .models import Location, Portfolio, SocialLink, User
+from .models import Location, Portfolio, SocialLink, User, Project, Tool, project_tools
 from .utils import get_file_extension
 from . import db
 
@@ -16,40 +16,80 @@ def start():
     return render_template('home.html')
 
 
-# @views.route("/projects/", methods=['GET', 'POST'])
-# def create_get_projects():
-#     if request.method == "GET":
-#         projects = [project.to_dict() for project in Project.query.all()]
-#         return jsonify(projects)
-#     elif request.method == 'POST':
-#         highlight = request.form['highlight']
-#         tool_id = request.form['tool_id']
-#         name = request.form['name']
-#         description = request.form['description']
+@views.route("/projects/", methods=['GET', 'POST'])
+def get_create_projects():
+    if request.method == "GET":
+        projects = [project.to_dict() for project in Project.query.all()]
+        return jsonify(projects)
+    elif request.method == 'POST':
+        create_fields = request.form.to_dict()
 
-#         project = Project(highlight=highlight, tool_id=tool_id,
-#                                  name=name, description=description)
+        name = create_fields['name']
+        description = create_fields['description']
+        user_id = create_fields['user_id']
 
-#         db.session.add(project)
-#         db.session.commit()
+        project = Project(name=name, description=description, user_id= user_id)
 
-#         return "<p>Added New Project</p>"
+        if 'highlight' in create_fields.keys():
+            setattr(project, 'highlight', create_fields['highlight'] == 'True')
+
+        db.session.add(project)
+        db.session.commit()
+
+        if 'tools' in create_fields.keys():
+            tools = [int(tool_id) for tool_id in create_fields['tools'].split(',')]
+
+            for tool_id in tools:
+                tool = Tool.query.get(tool_id)
+                project.tools.append(tool)
 
 
-# @views.route("/tools/", methods=['GET', 'POST'])
-# def get_create_tools():
-#     if request.method == 'GET':
-#         tools = [tool.to_dict() for tool in Tool.query.all()]
-#         return jsonify(tools)
-#     elif request.method == 'POST':
-#         name = request.form['name']
+        db.session.commit()
 
-#         new_tool = Tool(name=name)
+        return "<p>Added New Project</p>"
 
-#         db.session.add(new_tool)
-#         db.session.commit()
 
-#         return "<p>Added New Tool</p>"
+@views.route('/projects/<int:project_id>', methods=['PUT'])
+def get_update_project(project_id):
+    if request.method == 'PUT':
+        project = Project.query.get(project_id)
+        put_fields = request.form.to_dict()
+        if 'tools' in put_fields.keys():
+            additional_tools = [int(tool_id) for tool_id in put_fields['tools'].split(',')]
+            del put_fields['tools']
+
+            for tool_id in additional_tools:
+                tool = Tool.query.get(tool_id)
+
+                if tool not in project.tools:
+                    project.tools.append(tool)
+
+        if 'highlight' in put_fields.keys():
+            setattr(project, 'highlight', put_fields['highlight'] == 'True')
+            del put_fields['highlight']
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(project, key, value)
+
+        db.session.commit()
+        return "<p>Updated Project</p>"
+
+
+@views.route("/tools/", methods=['GET', 'POST'])
+def get_create_tools():
+    if request.method == 'GET':
+        tools = [tool.to_dict() for tool in Tool.query.all()]
+        return jsonify(tools)
+    elif request.method == 'POST':
+        name = request.form['name']
+
+        new_tool = Tool(name=name)
+
+        db.session.add(new_tool)
+        db.session.commit()
+
+        return "<p>Added New Tool</p>"
 
 
 @views.route("/users/", methods=['GET'])
@@ -214,6 +254,39 @@ def update_resume():
     '''
 
 
+@views.route('projects/<int:project_id>/image', methods=['GET', 'POST'])
+def update_project_image(project_id):
+    project = Project.query.get(project_id)
+    user = User.query.get(project.user_id)
+
+    if request.method == 'POST':
+        uploaded_file = request.files['file']
+        new_pic = f"{user.username}-proj-{project_id}{get_file_extension(uploaded_file.filename)}"
+
+        if uploaded_file.filename != '':
+            # Remove user's existing profile pic
+
+            if project.image:
+                os.remove(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                       project.image))
+
+            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                            new_pic))
+
+        project.image = new_pic
+        db.session.commit()
+        return f"<p>{new_pic}</p>"
+    return f'''
+    <!doctype html>
+    <title>Upload Profile Picture</title>
+    <h1>Upload Profile Picture</h1>
+    {project.name}
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file accept=".png,.jpg,.jpeg,.gif">
+      <input type=submit value=Upload>
+    </form>
+    '''
+
 @views.route('locations/', methods=['GET', 'POST'])
 def get_add_locations():
     if request.method == "GET":
@@ -221,10 +294,10 @@ def get_add_locations():
 
         return jsonify(locations)
     if request.method == "POST":
-        city = request.form['city']
-        country = request.form['country']
-
-        location = Location(city=city, country=country)
+        post_fields = request.form.to_dict()
+        location = Location(city=post_fields['city'], state=post_fields['state'],
+        country=post_fields[
+            'country'])
 
         db.session.add(location)
         db.session.commit()

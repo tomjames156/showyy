@@ -2,6 +2,46 @@ from . import db
 import datetime
 from flask_login import UserMixin
 
+
+project_tools = db.Table(
+    'project_tools',
+    db.Column("project_id", db.Integer, db.ForeignKey('project.id'), primary_key=True),
+    db.Column("tool_id", db.Integer, db.ForeignKey('tool.id'), primary_key=True)
+)
+
+
+class Project(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.String(1000), nullable=False)
+    highlight = db.Column(db.Boolean, default=False)
+    image = db.Column(db.String, default='default.png')
+    tools = db.relationship('Tool', secondary=project_tools, backref='projects', lazy='subquery')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'description':self.description,
+            'highlight': self.highlight,
+            'image': self.image,
+            'tools': [tool.to_dict() for tool in self.tools],
+            'user_id': self.user_id
+        }
+
+
+class Tool(db.Model):
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name
+        }
+
+
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     city = db.Column(db.String(100))
@@ -66,9 +106,10 @@ class User(UserMixin, db.Model,):
     first_name = db.Column(db.String(100), nullable=False)
     last_name = db.Column(db.String(100), nullable=False)
     username = db.Column(db.String(100), nullable=False)
-    verified = db.Column(db.Boolean, nullable=True, default=False)
+    verified = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.datetime.now(datetime.UTC))
     portfolio = db.relationship('Portfolio', backref='user', uselist=False)
+    projects = db.relationship('Project', backref='user', lazy=True)
 
     def to_dict(self):
         portfolio = self.portfolio.to_dict() if self.portfolio else None
@@ -82,5 +123,6 @@ class User(UserMixin, db.Model,):
             'username': self.username,
             'verified': self.verified,
             'created_at': self.created_at,
-            'portfolio': portfolio
+            'portfolio': portfolio,
+            'projects': [project.to_dict() for project in self.projects]
         }
