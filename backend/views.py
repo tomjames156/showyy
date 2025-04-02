@@ -1,9 +1,8 @@
 import datetime
 import os
 from flask import Blueprint, current_app, request, jsonify, flash, redirect, url_for, render_template
-from flask_restful import Resource, marshal_with
 from werkzeug.utils import secure_filename
-from .models import Location, Portfolio
+from .models import Location, Portfolio, Project, Tool
 from .utils import *
 from . import db
 
@@ -20,6 +19,40 @@ ALLOWED_EXTENSIONS = ['png', 'pdf', 'jpg', 'jpeg', 'gif']
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+@views.route("/projects/", methods=['GET', 'POST'])
+def create_get_projects():
+    if request.method == "GET":
+        projects = [project.to_dict() for project in Project.query.all()]
+        return jsonify(projects)
+    elif request.method == 'POST':
+        tool_id = request.form['tool_id']
+        name = request.form['name']
+        description = request.form['description']
+
+        project = Project(tool_id=tool_id,
+                                 name=name, description=description)
+
+        db.session.add(project)
+        db.session.commit()
+
+        return "<p>Added New Project</p>"
+
+
+@views.route("/tools/", methods=['GET', 'POST'])
+def get_create_tools():
+    if request.method == 'GET':
+        tools = [tool.to_dict() for tool in Tool.query.all()]
+        return jsonify(tools)
+    elif request.method == 'POST':
+        name = request.form['name']
+
+        new_tool = Tool(name=name)
+
+        db.session.add(new_tool)
+        db.session.commit()
+
+        return "<p>Added New Tool</p>"
 
 @views.route('/pic', methods=['GET', 'POST'])
 def upload_file():
@@ -104,3 +137,4 @@ def get_portfolios():
 
 # class Portfolio(Resource):
 #     @
+    

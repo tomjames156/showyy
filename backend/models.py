@@ -56,6 +56,67 @@ class Portfolio(db.Model):
             'social_links': [social_link.to_dict() for social_link in self.social_links]
         }
 
+# class Experience(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     organization = db.Column(db.String(150))
+#     role = db.Column(db.String(150))
+#     start_date = db.Column(db.DateTime(timezone=True))
+#     end_date = db.Column(db.DateTime(timezone=True))
+#     user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
+#     def to_dict(self):
+#         return {
+#             'id': self.id,
+#             'organization': self.organization,
+#             'role': self.role,
+#             'start_date' : self.start_date,
+#             'end_date' : self.end_date,
+#             'user_id' : self.user_id
+#         }
+
+
+# class Exp_bullets(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     bullet_points = db.Column(db.String(500))
+#     Experience_id = db.Column(db.Integer, db.ForeignKey('experience.id'))
+
+#     def to_dict(self):
+#         return{
+#             'id' : self.id,
+#             'bullet_points' : self.bullet_points,
+#             'experience_id' : self.experience_id
+#         }
+
+# class Project(db.Model):
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     highlight = db.Column(db.Boolean, nullable=True, default=False)
+#     tool_id = db.Column(db.Integer, db.ForeignKey('tool.id'))
+#     image = db.Column(db.String(100), default='image.png')
+#     name = db.Column(db.String(150), nullable=False)
+#     description = db.Column(db.String(1000), nullable=False)
+
+#     def to_dict(self):
+#         return {
+#             'id': self.id,
+#             'highlight': self.highlight,
+#             'tool_id': self.tool_id,
+#             'tools': [tool.to_dict() for tool in self.tools],
+#             'image': self.image,
+#             'name': self.name,
+#             'description': self.description
+#         }
+
+
+
+# class Tool(db.Model):
+#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+#     name = db.Column(db.String(150))
+#     projects = db.relationship('Project', backref='tools', lazy=True)
+
+#     def to_dict(self):
+#         return {
+#             'id': self.id,
+#             'name': self.name
+#         }
 
 class User(UserMixin, db.Model,):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -82,3 +143,4 @@ class User(UserMixin, db.Model,):
             'created_at': self.created_at,
             'portfolio': portfolio
         }
+    
