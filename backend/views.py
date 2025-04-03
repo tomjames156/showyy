@@ -48,10 +48,13 @@ def get_create_projects():
         return "<p>Added New Project</p>"
 
 
-@views.route('/projects/<int:project_id>', methods=['PUT'])
+@views.route('/projects/<int:project_id>', methods=['PUT', 'GET'])
 def get_update_project(project_id):
+    project = Project.query.get(project_id)
+    if request.method == 'GET':
+        return jsonify(project.to_dict())
     if request.method == 'PUT':
-        project = Project.query.get(project_id)
+        
         put_fields = request.form.to_dict()
         if 'tools' in put_fields.keys():
             additional_tools = [int(tool_id) for tool_id in put_fields['tools'].split(',')]
@@ -99,7 +102,7 @@ def get_users():
 
 @views.route("/users/<int:user_id>", methods=['GET', 'PUT'])
 def get_update_user(user_id):
-    user = User.query.filter_by(id=user_id).first()
+    user = User.query.get_or_404(user_id)
     if request.method == "GET":
         return jsonify(user.to_dict())
     if request.method == "PUT":

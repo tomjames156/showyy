@@ -97,69 +97,147 @@ class Portfolio(db.Model):
             'location': self.location.to_dict() if self.location else None,
             'social_links': [social_link.to_dict() for social_link in self.social_links]
         }
+class ExperienceBullet(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    bullet_point = db.Column(db.String(500), nullable=False)
+    experience_id = db.Column(db.Integer, db.ForeignKey('experience.id'))
 
-# class Experience(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     organization = db.Column(db.String(150))
-#     role = db.Column(db.String(150))
-#     start_date = db.Column(db.DateTime(timezone=True))
-#     end_date = db.Column(db.DateTime(timezone=True))
-#     user_id = db.Column(db.Integer, db.ForeignKey('User.id'))
-#     def to_dict(self):
-#         return {
-#             'id': self.id,
-#             'organization': self.organization,
-#             'role': self.role,
-#             'start_date' : self.start_date,
-#             'end_date' : self.end_date,
-#             'user_id' : self.user_id
-#         }
+    def to_dict(self):
+        return{
+            'id' : self.id,
+            'bullet_point' : self.bullet_point,
+            'experience_id' : self.experience_id
+        }
 
 
-# class Exp_bullets(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     bullet_points = db.Column(db.String(500))
-#     Experience_id = db.Column(db.Integer, db.ForeignKey('experience.id'))
+class Experience(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    organization = db.Column(db.String(150), nullable=False)
+    role = db.Column(db.String(150), nullable=False)
+    start_date = db.Column(db.DateTime(timezone=True), nullable=False)
+    end_date = db.Column(db.DateTime(timezone=True))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    bullet_points = db.relationship('ExperienceBullet', backref='experience', lazy=True)
 
-#     def to_dict(self):
-#         return{
-#             'id' : self.id,
-#             'bullet_points' : self.bullet_points,
-#             'experience_id' : self.experience_id
-#         }
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'organization': self.organization,
+            'role': self.role,
+            'start_date' : self.start_date,
+            'end_date' : self.end_date,
+            'user_id' : self.user_id,
+            'bullet_points': [bullet.to_dict() for bullet in self.bullet_points]
+        }
 
-# class Project(db.Model):
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     highlight = db.Column(db.Boolean, nullable=True, default=False)
-#     tool_id = db.Column(db.Integer, db.ForeignKey('tool.id'))
-#     image = db.Column(db.String(100), default='image.png')
-#     name = db.Column(db.String(150), nullable=False)
-#     description = db.Column(db.String(1000), nullable=False)
+class Testimonial(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    testimonial_text = db.Column(db.String(10000))
+    client_id = db.Column(db.Integer, db.ForeignKey('client.id'))
 
-#     def to_dict(self):
-#         return {
-#             'id': self.id,
-#             'highlight': self.highlight,
-#             'tool_id': self.tool_id,
-#             'tools': [tool.to_dict() for tool in self.tools],
-#             'image': self.image,
-#             'name': self.name,
-#             'description': self.description
-#         }
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'testimonial_text': self.testimonial_text
+        }
 
 
 
-# class Tool(db.Model):
-#     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-#     name = db.Column(db.String(150))
-#     projects = db.relationship('Project', backref='tools', lazy=True)
+class client(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(150))
+    organization = db.Column(db.String(150))
 
-#     def to_dict(self):
-#         return {
-#             'id': self.id,
-#             'name': self.name
-#         }
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'organization': self.organization
+        }
+class ContactSection(db.Model):
+     id = db.Column(db.Integer, primary_key=True)
+     intro_text = db.Column(db.String(10000))
+     phone_number = db.Column(db.Integer, nullable=False)
+     contact_email = db.Column(db.String(150), unique=True)
+     city = db.Column(db.String(100))
+     state = db.Column(db.String(100))
 
+     def to_dict(self):
+        return {
+            'id': self.id,
+            'intro_text': self.intro_text,
+            'phone_number': self.phone_number,
+            'contact_email': self.contact_email,
+            'city': self.city,
+            'state': self.state
+        }
+
+
+
+class AboutSection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    paragraph1 = db.Column(db.String(10000))
+    skills_intro = db.Column(db.String(10000))
+    paragraph2 = db.Column(db.String(10000))
+    picture_display = db.Column(db.String(10000), default='default.png')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'paragraph1': self.paragraph1,
+            'skills_intro': self.skills_intro,
+            'paragraph2': self.paragraph2,
+            'picture_display': self.picture_display
+        }
+class Service_Section(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    intro_text = db.Column(db.String(10000))
+    service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'intro_text': self.intro_text
+        }
+
+class Testimonial_Section(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    testimonial_id = db.Column(db.Integer, db.ForeignKey('testimonial.id'))
+   
+    def to_dict(self):
+        return {
+            'id': self.id
+        }
+
+class Service(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, unique=True)
+    name = db.Column(db.String(150))
+    description = db.Column(db.String(15000))
+    image = db.Column(db.String(10000), default='default.png')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'user_id': self.user_id,
+            'description': self.description,
+            'image': self.image
+        }
+
+
+class Person(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image = db.Column(db.String(10000), default='default.png')
+    name = db.Column(db.String(150))
+    organization = db.Column(db.String(10000), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'image': self.image,
+            'organization': self.organization
+        }
 
 class User(UserMixin, db.Model,):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)

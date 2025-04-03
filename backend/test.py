@@ -10,9 +10,13 @@ project_data = {
     'name': 'Freelancr',
     'description': 'Potfolio Showcase'
 }
-
-
-
-
-response = requests.post(BASE + '/projects/', data=project_data)
+response = requests.post(url=BASE + '/auth/signup/', data={
+    'first_name': 'Ummu',
+    'last_name': 'usman',
+    'username': 'user1',
+    'email': 'abc@gmail.com',
+    'password': 'user1'
+})
 print(response.text)
+
+
