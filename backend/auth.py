@@ -7,10 +7,33 @@ from .models import User
 auth = Blueprint('auth', __name__)
 
 
-@auth.route('/users/', methods=['GET', 'POST'])
-def get_users():
-    if request.method == 'GET':
-        users = User.query.all()
-        return jsonify([user.to_dict() for user in users])
-    elif request.method == 'POST':
-        return "<p>Yeah</p>"
+@auth.route('signup/', methods=['POST'])
+def signup_user():
+    if request.method == 'POST':
+        username = request.form['username']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        email = request.form['email']
+        password = request.form['password']
+
+        user = User(username=username, first_name=first_name, last_name=last_name, email=email,
+        password=generate_password_hash(password, method='scrypt', salt_length=16))
+
+        db.session.add(user)
+        db.session.commit()
+
+        return "<p>Added New User</p>"
+
+
+@auth.route('login/', methods=['POST'])
+def login_user():
+    username = request.form['username']
+    password = request.form['password']
+
+    user = User.query.filter_by(username=username).first()
+
+    if check_password_hash(user.password, password):
+        return f"<p>Successfully Logged In {username}</p>"
+    else:
+        return "<p>Authentication Failed</p>"
+
