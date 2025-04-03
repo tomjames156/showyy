@@ -3,7 +3,7 @@ import os
 from flask import Blueprint, current_app, request, jsonify, flash, redirect, url_for, render_template
 from flask_restful import Resource, marshal_with
 from werkzeug.utils import secure_filename
-from .models import Location, Portfolio, SocialLink, User, Project, Tool, project_tools
+from .models import *
 from .utils import get_file_extension
 from . import db
 
@@ -14,6 +14,104 @@ views = Blueprint('views', __name__)
 @views.route("/")
 def start():
     return render_template('home.html')
+
+
+@views.route("/experiences/", methods=['GET', 'POST'])
+def get_create_experiences():
+    if request.method == "GET":
+        experiences = [experience.to_dict() for experience in Experience.query.all()]
+        return jsonify(experiences)
+    elif request.method == 'POST':
+        create_fields = request.json
+        bullet_points = []
+
+        if 'bullet_points' in create_fields.keys():
+            bullet_points = create_fields['bullet_points']
+            del create_fields['bullet_points']
+
+        new_experience = Experience()
+
+        if 'start_date' in create_fields.keys():
+            new_experience.start_date = datetime.datetime.fromisoformat(create_fields['start_date'])
+            del create_fields['start_date']
+
+        if 'end_date' in create_fields.keys():
+            new_experience.end_date = datetime.datetime.fromisoformat(create_fields['end_date'])
+            del create_fields['end_date']
+
+        for key, value in create_fields.items():
+            if value is not None:
+                setattr(new_experience, key, value)
+
+        db.session.add(new_experience)
+        db.session.commit()
+
+        if bullet_points:
+            for bullet_point in bullet_points:
+                bullet_point = ExperienceBullet(bullet_point=bullet_point,
+                                                experience_id=new_experience.id)
+                db.session.add(bullet_point)
+
+            db.session.commit()
+
+        return "<p>Added New Experience</p>"
+
+
+@views.route('/experiences/<int:experience_id>', methods=['GET', 'PUT'])
+def get_update_experience(experience_id):
+    experience = Experience.query.get_or_404(experience_id)
+    if request.method == 'GET':
+        return jsonify(experience.to_dict())
+    if request.method == 'PUT':
+        put_fields = request.form.to_dict()
+
+        if 'start_date' in put_fields.keys():
+            experience.start_date = datetime.datetime.fromisoformat(put_fields['start_date'])
+            del put_fields['start_date']
+
+        if 'end_date' in put_fields.keys():
+            experience.end_date = datetime.datetime.fromisoformat(put_fields['end_date'])
+            del put_fields['end_date']
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(experience, key, value)
+
+        db.session.commit()
+        return "<p>Updated Experience</p>"
+
+
+@views.route("/experience_bullets/", methods=['GET', 'POST'])
+def get_create_experience_bullets():
+    if request.method == "GET":
+        bullet_points = [point.to_dict() for point in ExperienceBullet.query.all()]
+        return jsonify(bullet_points)
+    elif request.method == 'POST':
+        create_fields = request.form.to_dict()
+
+        bullet_point = ExperienceBullet(bullet_point=create_fields['bullet_point'],
+                                        experience_id=create_fields['experience_id'])
+
+        db.session.add(bullet_point)
+        db.session.commit()
+
+        return "<p>Added New Bullet Point</p>"
+
+
+@views.route('/experience_bullets/<int:experience_id>', methods=['GET', 'PUT'])
+def get_update_experience_bullets(experience_id):
+    bullet_point = ExperienceBullet.query.get_or_404(experience_id)
+    if request.method == 'GET':
+        return jsonify(bullet_point.to_dict())
+    if request.method == 'PUT':
+        put_fields = request.form.to_dict()
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(bullet_point, key, value)
+
+        db.session.commit()
+        return "<p>Updated Bullet Point</p>"
 
 
 @views.route("/projects/", methods=['GET', 'POST'])
@@ -49,10 +147,12 @@ def get_create_projects():
         return "<p>Added New Project</p>"
 
 
-@views.route('/projects/<int:project_id>', methods=['PUT'])
+@views.route('/projects/<int:project_id>', methods=['GET', 'PUT'])
 def get_update_project(project_id):
+    project = Project.query.get_or_404(project_id)
+    if request.method == 'GET':
+        return jsonify(project.to_dict())
     if request.method == 'PUT':
-        project = Project.query.get(project_id)
         put_fields = request.form.to_dict()
         if 'tools' in put_fields.keys():
             additional_tools = [int(tool_id) for tool_id in put_fields['tools'].split(',')]
