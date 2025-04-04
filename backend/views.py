@@ -15,6 +15,66 @@ views = Blueprint('views', __name__)
 def start():
     return render_template('home.html')
 
+@views.route('/about_sections/', methods=['GET', 'POST'])
+def get_create_about_section():
+    if request.method == "GET":
+        about_sections = [about.to_dict() for about in AboutSection.query.all()]
+        return jsonify(about_sections)
+    elif request.method == 'POST':
+        create_fields = request.json
+        tools = []
+
+        if 'tools' in create_fields.keys():
+            tools = create_fields['tools']
+            del create_fields['tools']
+
+        new_about_section = AboutSection()
+
+        for key, value in create_fields.items():
+            if value is not None:
+                setattr(new_about_section, key, value)
+
+        db.session.add(new_about_section)
+        db.session.commit()
+
+        if tools:
+            for tool_id in tools:
+                tool = Tool.query.get(tool_id)
+                new_about_section.tools.append(tool)
+
+            db.session.commit()
+
+        return f"<p>Added About Section for User id {new_about_section.user_id}</p>"
+
+
+@views.route('/about_sections/<int:about_id>', methods=['GET', 'PUT'])
+def get_update_about_section(about_id):
+    about_section = AboutSection.query.get_or_404(about_id)
+    if request.method == 'GET':
+        return jsonify(about_section.to_dict())
+    if request.method == 'PUT':
+        put_fields = request.json
+        tools = []
+
+        if 'tools' in put_fields.keys():
+            tools = put_fields['tools']
+            del put_fields['tools']
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(about_section, key, value)
+
+        db.session.commit()
+
+        if tools:
+            for tool_id in tools:
+                tool = Tool.query.get(tool_id)
+                if tool not in about_section.tools:
+                    about_section.tools.append(tool)
+
+            db.session.commit()
+        return "<p>Updated About Section</p>"
+
 
 @views.route("/experiences/", methods=['GET', 'POST'])
 def get_create_experiences():
@@ -63,7 +123,12 @@ def get_update_experience(experience_id):
     if request.method == 'GET':
         return jsonify(experience.to_dict())
     if request.method == 'PUT':
-        put_fields = request.form.to_dict()
+        put_fields = request.json
+        bullet_points = []
+
+        if 'bullet_points' in put_fields.keys():
+            bullet_points = put_fields['bullet_points']
+            del put_fields['bullet_points']
 
         if 'start_date' in put_fields.keys():
             experience.start_date = datetime.datetime.fromisoformat(put_fields['start_date'])
@@ -78,6 +143,14 @@ def get_update_experience(experience_id):
                 setattr(experience, key, value)
 
         db.session.commit()
+
+        if bullet_points:
+            for bullet_point in bullet_points:
+                bullet_point = ExperienceBullet(bullet_point=bullet_point,
+                                                experience_id=experience.id)
+                db.session.add(bullet_point)
+
+            db.session.commit()
         return "<p>Updated Experience</p>"
 
 
@@ -120,7 +193,7 @@ def get_create_projects():
         projects = [project.to_dict() for project in Project.query.all()]
         return jsonify(projects)
     elif request.method == 'POST':
-        create_fields = request.form.to_dict()
+        create_fields = request.json
 
         name = create_fields['name']
         description = create_fields['description']
@@ -135,12 +208,9 @@ def get_create_projects():
         db.session.commit()
 
         if 'tools' in create_fields.keys():
-            tools = [int(tool_id) for tool_id in create_fields['tools'].split(',')]
-
-            for tool_id in tools:
+            for tool_id in create_fields['tools']:
                 tool = Tool.query.get(tool_id)
                 project.tools.append(tool)
-
 
         db.session.commit()
 
@@ -153,16 +223,16 @@ def get_update_project(project_id):
     if request.method == 'GET':
         return jsonify(project.to_dict())
     if request.method == 'PUT':
-        put_fields = request.form.to_dict()
-        if 'tools' in put_fields.keys():
-            additional_tools = [int(tool_id) for tool_id in put_fields['tools'].split(',')]
-            del put_fields['tools']
+        put_fields = request.json
 
-            for tool_id in additional_tools:
+        if 'tools' in put_fields.keys():
+            for tool_id in put_fields['tools']:
                 tool = Tool.query.get(tool_id)
 
                 if tool not in project.tools:
                     project.tools.append(tool)
+
+            del put_fields['tools']
 
         if 'highlight' in put_fields.keys():
             setattr(project, 'highlight', put_fields['highlight'] == 'True')

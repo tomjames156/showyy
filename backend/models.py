@@ -9,6 +9,13 @@ project_tools = db.Table(
 )
 
 
+about_tools = db.Table(
+    'about_tools',
+    db.Column('about_id', db.Integer, db.ForeignKey('about_section.id'), primary_key=True),
+    db.Column('tool_id', db.Integer, db.ForeignKey('tool.id'), primary_key=True)
+)
+
+
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
@@ -112,7 +119,7 @@ class Portfolio(db.Model):
     resume = db.Column(db.String(150))
     date_created = db.Column(db.DateTime)
     last_updated = db.Column(db.DateTime)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True)
     profile_pic = db.Column(db.String(100), default='default.png')
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
     social_links = db.relationship('SocialLink', backref='portfolio', lazy=True)
@@ -161,3 +168,51 @@ class User(UserMixin, db.Model,):
             'projects': [project.to_dict() for project in self.projects],
             'experiences': [experience.to_dict() for experience in self.experiences]
         }
+
+
+class AboutSection(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    paragraph1 = db.Column(db.String(300))
+    skills_intro = db.Column(db.String(100))
+    paragraph2 = db.Column(db.String(300))
+    picture = db.Column(db.String(100), default='default.png')
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True)
+    tools = db.relationship('Tool', secondary=about_tools, backref='about', lazy='subquery')
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'paragraph1': self.paragraph1,
+            'skills_intro': self.skills_intro,
+            'paragraph2': self.paragraph2,
+            'picture': self.picture,
+            'user_id': self.user_id,
+            'tools': [tool.to_dict() for tool in self.tools]
+        }
+
+
+# class Service(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     name = db.Column(db.String(150))
+#     description = db.Column(db.String(200))
+#     image = db.Column(db.String(100), default='default.png')
+#
+#     def to_dict(self):
+#         return {
+#             'id': self.id,
+#             'name': self.name,
+#             'description': self.description,
+#             'image': self.image
+#         }
+#
+#
+# class ServicesSection(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     intro_text = db.Column(db.String(500))
+#     services = db.Column(db.Integer, db.ForeignKey('service.id'))
+#
+#     def to_dict(self):
+#         return {
+#             'id': self.id,
+#             'intro_text': self.intro_text
+#         }
