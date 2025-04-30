@@ -2,7 +2,7 @@ import datetime
 import os
 from flask import Blueprint, current_app, request, jsonify, flash, redirect, url_for, render_template
 from werkzeug.utils import secure_filename
-from .models import Location, Portfolio, SocialLink, User, Project, Tool, project_tools
+from .models import *
 from .utils import get_file_extension
 from . import db
 
@@ -48,12 +48,12 @@ def get_create_projects():
         return "<p>Added New Project</p>"
 
 
-@views.route('/projects/<int:project_id>', methods=['PUT', 'GET'])
+@views.route('/projects/<int:project_id>', methods=['PUT', 'GET', 'DELETE'])
 def get_update_project(project_id):
     project = Project.query.get(project_id)
     if request.method == 'GET':
         return jsonify(project.to_dict())
-    if request.method == 'PUT':
+    elif request.method == 'PUT':
         
         put_fields = request.form.to_dict()
         if 'tools' in put_fields.keys():
@@ -77,13 +77,20 @@ def get_update_project(project_id):
         db.session.commit()
         return "<p>Updated Project</p>"
 
+    if request.method == 'DELETE':
+            db.session.delete(project)
+            db.session.commit()
+
+            return "<p>Project deleted</p>"
+    
+
 
 @views.route("/tools/", methods=['GET', 'POST'])
 def get_create_tools():
     if request.method == 'GET':
         tools = [tool.to_dict() for tool in Tool.query.all()]
         return jsonify(tools)
-    elif request.method == 'POST':
+    if request.method == 'POST':
         name = request.form['name']
 
         new_tool = Tool(name=name)
@@ -92,7 +99,18 @@ def get_create_tools():
         db.session.commit()
 
         return "<p>Added New Tool</p>"
+    
 
+@views.route("/tools/<int:tool_id>", methods=['GET', 'DELETE'])
+def get_delete_tool(tool_id):
+    tool = Tool.query.get_or_404(tool_id)
+    if request.method == 'GET':
+        return jsonify(tool.to_dict())
+    if request.method == 'DELETE':
+        db.session.delete(tool)
+        db.session.commit()
+
+        return "<p>Tool deleted</p>"
 
 @views.route("/users/", methods=['GET'])
 def get_users():
@@ -105,7 +123,7 @@ def get_update_user(user_id):
     user = User.query.get_or_404(user_id)
     if request.method == "GET":
         return jsonify(user.to_dict())
-    if request.method == "PUT":
+    elif request.method == "PUT":
         update_fields = request.form.to_dict()
 
         for key, value in update_fields.items():
@@ -121,7 +139,7 @@ def create_get_social_links():
     if request.method == "GET":
         social_links = [social_link.to_dict() for social_link in SocialLink.query.all()]
         return jsonify(social_links)
-    elif request.method == 'POST':
+    if request.method == 'POST':
         link_type = request.form['link_type']
         link_value = request.form['link_value']
         portfolio_id = request.form['portfolio_id']
@@ -135,7 +153,7 @@ def create_get_social_links():
         return "<p>Added New Social Link</p>"
 
 
-@views.route("/social_links/<int:social_link_id>", methods=['GET', "PUT"])
+@views.route("/social_links/<int:social_link_id>", methods=['GET', "PUT", 'DELETE'])
 def get_update_social_links(social_link_id):
     social_link = SocialLink.query.filter_by(id=social_link_id).first()
     if request.method == "GET":
@@ -149,13 +167,18 @@ def get_update_social_links(social_link_id):
 
         db.session.commit()
         return jsonify(social_link.to_dict())
+    if request.method == 'DELETE':
+        db.session.delete(social_link)
+        db.session.commit()
+
+        return "<p>social link  removed</p>"
 
 @views.route("/portfolios/", methods=['GET', 'POST'])
 def get_create_portfolios():
     if request.method == 'GET':
         portfolios = [portfolio.to_dict() for portfolio in Portfolio.query.all()]
         return jsonify(portfolios)
-    elif request.method == 'POST':
+    if request.method == 'POST':
         role = request.form['role']
         resume = request.form['resume']
         date_created = datetime.datetime.now()
@@ -172,7 +195,7 @@ def get_create_portfolios():
         return "<p>Added New Portfolio</p>"
 
 
-@views.route('portfolios/<int:portfolio_id>', methods=["GET", "PUT"])
+@views.route("/portfolios/<int:portfolio_id>", methods=['GET', 'PUT'])
 def get_update_portfolio(portfolio_id):
     portfolio = Portfolio.query.filter_by(id=portfolio_id).first()
 
@@ -188,6 +211,19 @@ def get_update_portfolio(portfolio_id):
         db.session.commit()
 
         return jsonify(portfolio.to_dict())
+    
+@views.route('/portfolios/<int:portfolio_id>', methods=['GET', 'DELETE'])
+def get_delete_portfolio(portfolio_id):
+    portfolio = Portfolio.query.filter_by(id=portfolio_id).first()
+
+    if request.method == "GET":
+        return jsonify(portfolio.to_dict())
+    elif request.method == 'DELETE':
+        db.session.delete(portfolio)
+        db.session.commit()
+
+        return "<p>Portfolio deleted</p>"
+    
 
 
 @views.route('user/profile_pic', methods=['GET', 'POST'])
@@ -298,8 +334,7 @@ def get_add_locations():
     if request.method == "POST":
         post_fields = request.form.to_dict()
         location = Location(city=post_fields['city'], state=post_fields['state'],
-        country=post_fields[
-            'country'])
+        country=post_fields['country'])
 
         db.session.add(location)
         db.session.commit()
@@ -307,12 +342,12 @@ def get_add_locations():
         return "<p>Added Location</p>"
 
 
-@views.route('locations/<int:location_id>', methods=["GET", "PUT"])
+@views.route("locations/<int:location_id>", methods=['GET', 'PUT', 'DELETE'])
 def get_update_location(location_id):
     location = Location.query.filter_by(id=location_id).first()
-    if request.method == "GET":
+    if request.method == 'GET':
         return jsonify(location.to_dict())
-    if request.method == "PUT":
+    if request.method == 'PUT':
         update_fields = request.form.to_dict()
         for key, value in update_fields.items():
             if value is not None:
@@ -320,4 +355,414 @@ def get_update_location(location_id):
 
         db.session.commit()
         return jsonify(location.to_dict())
+    if request.method == 'DELETE':
+        db.session.delete(location)
+        db.session.commit()
 
+        return "<p>Location deleted.</p>"
+
+
+@views.route("/testimonials/", methods=['GET', 'POST'])
+def get_create_testimonial():
+    if request.method == 'GET':
+        testimonials = [testimonial.to_dict() for testimonial in Testimonial.query.all()]
+        return jsonify(testimonials)
+    if request.method == 'POST':
+        
+        testimonial_text = request.json['testimonial_text']
+        client_id = request.json['client_id']
+
+        new_testimonial = Testimonial(testimonial_text=testimonial_text, client_id=client_id)
+
+        db.session.add(new_testimonial)
+        db.session.commit()
+
+        return "<p>Added New testimonial</p>"
+
+@views.route("testimonials/<int:testimonial_id>", methods=['GET', 'PUT', 'DELETE'])
+def get_update_testimonial(testimonial_id):
+    testimonial = Testimonial.query.get_or_404(testimonial_id)
+    if request.method == 'GET':
+        return jsonify(testimonial.to_dict())
+    if request.method == 'PUT':
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(testimonial, key, value)
+
+        db.session.commit()
+        return "<p>testimonial updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(testimonial)
+        db.session.commit()
+
+        return "<p>Testimonial deleted</p>"
+
+
+
+@views.route("/clients/", methods=['GET', 'POST'])
+def get_create_clients():
+    if request.method == 'GET':
+        clients = [client.to_dict() for client in Client.query.all()]
+        return jsonify(clients)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        name = create_fields['name']
+        organization = create_fields['organization']
+
+        new_client = Client(name=name, organization=organization)
+
+        db.session.add(new_client)
+        db.session.commit()
+
+        return "<p>Added client</p>"
+
+@views.route("clients/<int:client_id>", methods=['GET', 'PUT', 'DELETE'])
+def get_update_client(client_id):
+    client = Client.query.get_or_404(client_id)
+    if request.method == 'GET':
+        return jsonify(client.to_dict())
+    if request.method == 'PUT':
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(client, key, value)
+
+        db.session.commit()
+        return "<p>client updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(client)
+        db.session.commit()
+
+        return "<p>client removed</p>"
+
+@views.route("/about_section/", methods=['GET', 'POST'])
+def get_create_about_section():
+    if request.method == 'GET':
+        about_section = [about_section.to_dict() for about_section in AboutSection.query.all()]
+        return jsonify(about_section)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        paragraph1 = create_fields['paragraph1']
+        paragraph2 = create_fields['paragraph2']
+        skills_intro = create_fields['skills_intro']
+
+        about_section = AboutSection(paragraph1=paragraph1, paragraph2=paragraph2, skills_intro=skills_intro)
+
+        db.session.add(about_section)
+        db.session.commit()
+
+        return "<p>About section added</p>"
+
+
+@views.route('/about_section/<int:about_section_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_about_section(about_section_id):
+    about_section = AboutSection.query.get_or_404(about_section_id)
+    if request.method == 'GET':
+        return jsonify(about_section.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(about_section, key, value)
+
+        db.session.commit()
+        return "<p>About section updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(about_section)
+        db.session.commit()
+
+        return "<p>About section removed</p>"
+
+@views.route("/contact_section/", methods=['GET', 'POST'])
+def get_create_contact_section():
+    if request.method == 'GET':
+        contact_section = [contact_section.to_dict() for contact_section in ContactSection.query.all()]
+        return jsonify(contact_section)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        intro_text = create_fields['intro_text']
+        phone_number = create_fields['phone_number']
+        city = create_fields['city']
+        state = create_fields['state']
+
+        contact_section = ContactSection(intro_text=intro_text, phone_number=phone_number, city=city, state=state)
+
+        db.session.add(contact_section)
+        db.session.commit()
+
+        return "<p>Contact section added</p>"
+
+
+@views.route('/contact_section/<int:contact_section_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_contact_section(contact_section_id):
+    contact_section = ContactSection.query.get_or_404(contact_section_id)
+    if request.method == 'GET':
+        return jsonify(contact_section.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(contact_section, key, value)
+
+        db.session.commit()
+        return "<p>Contact section updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(contact_section)
+        db.session.commit()
+
+        return "< Contact section removed</p>"
+    
+@views.route("/testimonial_section/", methods=['GET', 'POST'])
+def get_create_testimonial_section():
+    if request.method == 'GET':
+        testimonial_section = [testimonial_section.to_dict() for testimonial_section in TestimonialSection.query.all()]
+        return jsonify(testimonial_section)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        testimonial_id = create_fields['testimonial_id']
+        
+
+        testimonial_section = TestimonialSection(testimonial_id=testimonial_id)
+
+        db.session.add(testimonial_section)
+        db.session.commit()
+
+        return "<p>Testimonial section added</p>"
+
+
+@views.route('/testimonial_section/<int:testimonial_section_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_testimonial_section(testimonial_section_id):
+    testimonial_section = TestimonialSection.query.get_or_404(testimonial_section_id)
+    if request.method == 'GET':
+        return jsonify(testimonial_section.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(testimonial_section, key, value)
+
+        db.session.commit()
+        return "<p>Testimonial section updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(testimonial_section)
+        db.session.commit()
+
+        return "<p>Testimonial section removed</p>"
+    
+@views.route("/service/", methods=['GET', 'POST'])
+def get_create_about_section():
+    if request.method == 'GET':
+        service = [service.to_dict() for service in Service.query.all()]
+        return jsonify(service)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        user_id = create_fields['user_id']
+        name = create_fields['name']
+        description = create_fields['description']
+
+        service = Service(user_id=user_id, name=name, description=description)
+
+        db.session.add(service)
+        db.session.commit()
+
+        return "<p>Service added</p>"
+
+@views.route('/service/<int:service_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_service(service_id):
+    service = Service.query.get_or_404(service_id)
+    if request.method == 'GET':
+        return jsonify(service.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(service, key, value)
+
+        db.session.commit()
+        return "<p>Service updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(service)
+        db.session.commit()
+
+        return "<p>Service removed</p>"
+
+@views.route("/service_section/", methods=['GET', 'POST'])
+def get_create_service_section():
+    if request.method == 'GET':
+        service_section = [service_section.to_dict() for service_section in ServiceSection.query.all()]
+        return jsonify(service_section)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        intro_text = create_fields['intro_text']
+
+        service_section = ServiceSection(intro_text=intro_text)
+
+        db.session.add(service_section)
+        db.session.commit()
+
+        return "<p>Service section added</p>"
+
+
+@views.route('/service_section/<int:service_section_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_service_section(service_section_id):
+    service_section = ServiceSection.query.get_or_404(service_section_id)
+    if request.method == 'GET':
+        return jsonify(service_section.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(service_section, key, value)
+
+        db.session.commit()
+        return "<p>service section updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(service_section)
+        db.session.commit()
+
+        return "<p>service section removed</p>"
+    
+@views.route("/person/", methods=['GET', 'POST'])
+def get_create_person():
+    if request.method == 'GET':
+        person = [person.to_dict() for person in Person.query.all()]
+        return jsonify(person)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        name = create_fields['name']
+        organization = create_fields['organization']
+
+        person = Person(name=name, organization=organization)
+
+        db.session.add(person)
+        db.session.commit()
+
+        return "<p>person added</p>"
+
+
+@views.route('/person/<int:person_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_person(person_id):
+    person = Person.query.get_or_404(person_id)
+    if request.method == 'GET':
+        return jsonify(person.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(person, key, value)
+
+        db.session.commit()
+        return "<p>Person updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(person)
+        db.session.commit()
+
+        return "<p>Person removed</p>"
+    
+
+@views.route("/experienceBullet/", methods=['GET', 'POST'])
+def get_create_experienceBullet():
+    if request.method == 'GET':
+        experienceBullet = [experienceBullet.to_dict() for experienceBullet in ExperienceBullet.query.all()]
+        return jsonify(experienceBullet)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        bullet_point = create_fields['bullet_point']
+        experience_id = create_fields['experience_id']
+
+        experienceBullet = ExperienceBullet(bullet_point=bullet_point, experience_id=experience_id)
+
+        db.session.add(experienceBullet)
+        db.session.commit()
+
+        return "<p> Experience added</p>"
+
+
+@views.route('/experienceBullet/<int:experienceBullet_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_experienceBullet(experienceBullet_id):
+    experienceBullet = ExperienceBullet.query.get_or_404(experienceBullet_id)
+    if request.method == 'GET':
+        return jsonify(experienceBullet.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(experienceBullet, key, value)
+
+        db.session.commit()
+        return "<p>Experience updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(experienceBullet)
+        db.session.commit()
+
+        return "<p>Experience removed</p>"
+    
+
+@views.route("/experience/", methods=['GET', 'POST'])
+def get_create_experience():
+    if request.method == 'GET':
+        experience = [experience.to_dict() for experience in Experience.query.all()]
+        return jsonify(experience)
+    if request.method == 'POST':
+        create_fields = request.json
+
+        organization = create_fields['organization']
+        role = create_fields['role']
+        user_id = create_fields['user_id']
+        start_date = 
+        end_date = 
+
+
+        experience = Experience(organization=organization, role=role, user_id=user_id, start_date=start_date, end_date=end_date)
+
+        db.session.add(experience)
+        db.session.commit()
+
+        return "<p>Experience added</p>"
+
+
+@views.route('/experience/<int:experience_id>', methods=['PUT', 'GET', 'DELETE'])
+def get_update_experience(experience_id):
+    experience = Experience.query.get_or_404(experience_id)
+    if request.method == 'GET':
+        return jsonify(experience.to_dict())
+    elif request.method == 'PUT':
+        
+        put_fields = request.json
+
+        for key, value in put_fields.items():
+            if value is not None:
+                setattr(experience, key, value)
+
+        db.session.commit()
+        return "<p>Experience updated</p>"
+    if request.method == 'DELETE':
+        db.session.delete(Experience)
+        db.session.commit()
+
+        return "<p>Experience removed</p>"

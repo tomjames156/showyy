@@ -141,9 +141,7 @@ class Testimonial(db.Model):
             'testimonial_text': self.testimonial_text
         }
 
-
-
-class client(db.Model):
+class Client(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(150))
     organization = db.Column(db.String(150))
@@ -189,7 +187,7 @@ class AboutSection(db.Model):
             'paragraph2': self.paragraph2,
             'picture_display': self.picture_display
         }
-class Service_Section(db.Model):
+class ServiceSection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     intro_text = db.Column(db.String(10000))
     service_id = db.Column(db.Integer, db.ForeignKey('service.id'))
@@ -199,7 +197,7 @@ class Service_Section(db.Model):
             'intro_text': self.intro_text
         }
 
-class Testimonial_Section(db.Model):
+class TestimonialSection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     testimonial_id = db.Column(db.Integer, db.ForeignKey('testimonial.id'))
    
@@ -210,7 +208,7 @@ class Testimonial_Section(db.Model):
 
 class Service(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, unique=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(150))
     description = db.Column(db.String(15000))
     image = db.Column(db.String(10000), default='default.png')
