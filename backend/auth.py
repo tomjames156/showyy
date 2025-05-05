@@ -155,7 +155,7 @@ def login_user():
                     users_services_section = ServicesSection(user_id=user.id)
                     db.session.add(users_services_section)
 
-                if not user.contact_section_section:
+                if not user.contact_section:
                     users_contact_section = ContactSection(user_id=user.id,
                                                            phone_number='000-000-0000')
                     db.session.add(users_contact_section)
