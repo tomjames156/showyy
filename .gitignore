@@ -1,9 +1,8 @@
 show_venv/
 
-*.db
 *.env
 database.db
-folio.db
+folio-backup.db
 static
 .DS_Store
 .idea/
@@ -13,6 +12,4 @@ backend/tests.py
 todo
 queries.txt
 
-migrations/
-instance/
 .vercel
