@@ -1,6 +1,7 @@
 show_venv/
 
 *.db
+*.env
 database.db
 folio.db
 static

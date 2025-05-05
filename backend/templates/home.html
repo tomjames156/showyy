@@ -3,11 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfolioo</title>
+    <title>User Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
 </head>
-<body>
-    <h1>Hi There</h1>
-    <p>Welcome Home</p>
-    <img src="{{url_for('static', filename='images/umuuu.jpg')}}">
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+        <div class="flex items-center justify-between mb-6">
+            <h1 class="text-2xl font-semibold text-gray-800">User Profile</h1>
+            <div class="w-16 h-16 rounded-full border-2 border-gray-300 flex items-center justify-center">
+                <img id="profile-pic"
+                     src="{{url_for('static', filename='images/4cd8a6d81f47763301a87d031da60abe.png')}}" alt="profile image">
+            </div>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-center">
+                <span class="font-semibold text-gray-700 w-24">Username:</span>
+                <span id="username" class="text-gray-600">{{ user.username }}</span>
+            </div>
+            <div class="flex items-center">
+                <span class="font-semibold text-gray-700 w-24">Email:</span>
+                <span id="email" class="text-gray-600">{{ user.email }}</span>
+            </div>
+            <div class="flex items-center">
+                <span class="font-semibold text-gray-700 w-24">Firstname:</span>
+                <span id="fname" class="text-gray-600">{{ user.first_name }}</span>
+            </div>
+            <div class="flex items-center">
+                <span class="font-semibold text-gray-700 w-24">Lastname:</span>
+                <span id="lname" class="text-gray-600">{{ user.last_name }}</span>
+            </div>
+        </div>
+        <div class="mt-6">
+             <button id="logout-button" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full">
+                Logout
+            </button>
+        </div>
+<!--        <div class="bg-white rounded-lg shadow-md p-8">-->
+<!--            <a href="{{url_for('static', filename='docs/24e32fcb3c891a9bfc11310425229126.pdf')}}"-->
+<!--               target="_blank"-->
+<!--               class="text-blue-600 hover:text-blue-800 transition duration-300 ease-in-out font-semibold">-->
+<!--               View Resume-->
+<!--            </a>-->
+<!--        </div>-->
+    </div>
+
+    <script>
+        // Logout button functionality
+        document.getElementById('logout-button').addEventListener('click', function() {
+            document.cookie = "jwt_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+            window.location.href = 'auth/login';
+        });
+    </script>
+
 </body>
 </html>
