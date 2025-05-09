@@ -1,7 +1,6 @@
 import datetime
 import os
-from flask import (Blueprint, abort, current_app, request, jsonify, flash, redirect, url_for,
-                   render_template, make_response)
+from flask import (Blueprint, abort, current_app, request, jsonify, render_template, make_response)
 from flask_restful import Resource, marshal_with
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
@@ -84,7 +83,7 @@ def get_users(current_user):
         abort(401, "Access Denied")
 
 
-@views.route("/users/<int:user_id>", methods=['GET', 'PUT'])
+@views.route("/users/<int:user_id>/", methods=['GET', 'PUT'])
 @token_required
 def get_update_user(user_id, current_user):
     user = User.query.get_or_404(user_id)
@@ -138,7 +137,7 @@ def get_create_portfolios(current_user):
         return response, 200
 
 
-@views.route('portfolios/<int:portfolio_id>', methods=["GET", "PUT"])
+@views.route('portfolios/<int:portfolio_id>/', methods=["GET", "PUT"])
 @token_required
 def get_update_portfolio(portfolio_id, current_user):
     portfolio = Portfolio.query.get_or_404(portfolio_id)
@@ -166,7 +165,7 @@ def get_update_portfolio(portfolio_id, current_user):
         return response, 200
 
 
-@views.route('user/profile_pic', methods=['GET', 'POST'])
+@views.route('user/profile_pic/', methods=['GET', 'POST'])
 @token_required
 def update_profile_pic(current_user):
     user = User.query.filter_by(username=current_user.username).first()
@@ -185,7 +184,7 @@ def update_profile_pic(current_user):
         if uploaded_file.filename != '':
             # Remove user's existing profile pic
 
-            if user.portfolio.profile_pic and user.portfolio.profile_pic != 'default.png':
+            if user.portfolio.profile_pic is not None:
                 os.remove(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
                                        user.portfolio.profile_pic))
 
@@ -209,7 +208,7 @@ def update_profile_pic(current_user):
     '''
 
 
-@views.route('user/resume', methods=['GET', 'POST'])
+@views.route('user/resume/', methods=['GET', 'POST'])
 @token_required
 def update_resume(current_user):
     user = User.query.filter_by(username=current_user.username).first()
@@ -283,7 +282,7 @@ def create_get_social_links(current_user):
         return response, 200
 
 
-@views.route("/social_links/<int:social_link_id>", methods=['GET', "PUT", "DELETE"])
+@views.route("/social_links/<int:social_link_id>/", methods=['GET', "PUT", "DELETE"])
 @token_required
 def get_update_social_links(social_link_id, current_user):
     social_link = SocialLink.query.get_or_404(social_link_id)
@@ -367,7 +366,7 @@ def get_create_about_section(current_user):
         return response, 200
 
 
-@views.route('/about_sections/<int:about_id>', methods=['GET', 'PUT'])
+@views.route('/about_sections/<int:about_id>/', methods=['GET', 'PUT'])
 @token_required
 def get_update_about_section(about_id, current_user):
     about_section = AboutSection.query.get_or_404(about_id)
@@ -455,7 +454,7 @@ def get_create_experiences(current_user):
         return response, 200
 
 
-@views.route('/experiences/<int:experience_id>', methods=['GET', 'PUT'])
+@views.route('/experiences/<int:experience_id>/', methods=['GET', 'PUT'])
 @token_required
 def get_update_experience(experience_id, current_user):
     experience = Experience.query.get_or_404(experience_id)
@@ -530,7 +529,7 @@ def get_create_experience_bullets(current_user):
         return response, 200
 
 
-@views.route('/experience_bullets/<int:bullet_point_id>', methods=['GET', 'PUT'])
+@views.route('/experience_bullets/<int:bullet_point_id>/', methods=['GET', 'PUT'])
 @token_required
 def get_update_experience_bullets(bullet_point_id, current_user):
     bullet_point = ExperienceBullet.query.get_or_404(bullet_point_id)
@@ -568,7 +567,7 @@ def get_create_services(current_user):
     elif request.method == 'POST':
         create_fields = request.form
         
-        service_name = create_fields['service_name']
+        service_name = create_fields['name']
         description = create_fields['description']
 
         services_section = ServicesSection.query.filter_by(user_id=current_user.id).first()
@@ -584,29 +583,92 @@ def get_create_services(current_user):
 
 
 @views.route("/services/<int:service_id>", methods=['GET', 'PUT'])
-def get_update_service(service_id):
+@token_required
+def get_update_service(service_id, current_user):
     service = Service.query.get_or_404(service_id)
     if request.method == "GET":
+        
+        if service.services_section.user_id != current_user.id and current_user.id != 1:
+            abort(401, "Access Denied")
+        
         return jsonify(service.to_dict())
     if request.method == "PUT":
         put_fields = request.json
+
+        if service.services_section.user_id != current_user.id:
+            abort(401, "Access Denied")
 
         if 'services_section_id' in put_fields.keys():
             del put_fields['services_section_id']
 
         for key, value in put_fields.items():
-            if value is not None:
+            if value is not None and key in ["name", "description"]:
                 setattr(service, key, value)
 
         db.session.commit()
-        return f"<p>Updated {service.name} service</p>"
+        
+        response = make_response(jsonify({"message": "Updated Service"}))
+        return response, 200
 
 
-@views.route("/services/names", methods=['GET'])
-def get_service_names():
-    query = text("""
+@views.route("/services/<int:service_id>/pic/", methods=['GET', 'POST'])
+@token_required
+def get_update_service_img(service_id, current_user):
+    service = Service.query.get_or_404(service_id)
+    user = User.query.filter_by(username=current_user.username).first()
+
+    if service.services_section.id != current_user.services_section.id and current_user.id != 1:
+        abort(401, "Access Denied")
+
+    if request.method == 'POST':
+        uploaded_file = request.files['file']
+
+        if service.services_section.id != current_user.services_section.id:
+            abort(401, "Access Denied")
+
+        new_pic = f"{new_filename()}{get_file_extension(uploaded_file.filename)}"
+
+        # For new user without service_section, create one
+        if not user.services_section:
+            new_services_section = ServicesSection(user_id=user.id)
+            db.session.add(new_services_section)
+            db.session.commit()
+
+        if uploaded_file.filename != '':
+            # Remove user's existing profile pic
+
+            if service.image is not None:
+                os.remove(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                       service.image))
+
+            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                            new_pic))
+
+        service.image = new_pic
+        db.session.commit()
+
+        response = make_response(jsonify({"message": "Updated Service Image"}))
+        return response, 200
+    return f'''
+    <!doctype html>
+    <title>Upload Profile Picture</title>
+    <h1>Upload Profile Picture</h1>
+    <img src={service.image} alt={service.image}>
+    <p>{service.name}</p>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file accept=".png,.jpg,.jpeg,.gif">
+      <input type=submit value=Upload>
+    </form>
+    '''
+
+
+@views.route("/services/names/", methods=['GET'])
+@token_required
+def get_service_names(current_user):
+    query = text(f"""
                 SELECT DISTINCT (name)
-                FROM service;
+                FROM service
+                WHERE services_section_id = {current_user.services_section.id};
             """)
     service_names = db.session.execute(query)
 
@@ -619,8 +681,11 @@ def get_service_names():
 
 
 @views.route("/services_sections/", methods=['GET', 'POST'])
-def get_create_services_sections():
+@token_required
+def get_create_services_sections(current_user):
     if request.method == 'GET':
+        if current_user.id != 1:
+            abort(401, "Access Denied")
         service_sections = [service_section.to_dict() for service_section in ServicesSection.query.all()]
         return jsonify(service_sections)
     if request.method == "POST":
@@ -631,13 +696,13 @@ def get_create_services_sections():
             services = create_fields['services']
             del create_fields['services']
 
-        if check_user_id_exists_in_table('services_section', create_fields['user_id']):
+        if check_user_id_exists_in_table('services_section', current_user.id):
             abort(409, "Services section already exists for this user")
 
-        new_services_section = ServicesSection()
+        new_services_section = ServicesSection(user_id=current_user.id)
 
         for key, value in create_fields.items():
-            if value is not None:
+            if value is not None and key in ["intro_text"]:
                 setattr(new_services_section, key, value)
 
         db.session.add(new_services_section)
@@ -650,17 +715,25 @@ def get_create_services_sections():
                 db.session.add(new_service)
 
         db.session.commit()
-        return "<p>Added new Service Section</p>"
+        
+        response = make_response(jsonify({"message": "Added New Service Section"}))
+        return response, 200
 
 
-@views.route("/services_sections/<int:service_section_id>", methods=['GET', 'PUT'])
-def get_update_services_sections(service_section_id):
+@views.route("/services_sections/<int:service_section_id>/", methods=['GET', 'PUT'])
+@token_required
+def get_update_services_sections(service_section_id, current_user):
     services_section = ServicesSection.query.get_or_404(service_section_id)
     if request.method == 'GET':
+        if current_user.services_section.user_id != services_section.user_id and current_user.id != 1:
+            abort(401, "Access Denied")
         return jsonify(services_section.to_dict())
     if request.method == "PUT":
         update_fields = request.json
         services = []
+
+        if current_user.services_section.user_id != services_section.user_id:
+            abort(401, "Access Denied")
 
         if 'services' in update_fields.keys():
             services = update_fields['services']
@@ -676,12 +749,19 @@ def get_update_services_sections(service_section_id):
                 db.session.add(new_service)
 
         db.session.commit()
-        return "<p>Updated Service Section</p>"
+
+        response = make_response(jsonify({"message": "Updated Service Section"}))
+        return response, 200
 
 
 @views.route("/projects/", methods=['GET', 'POST'])
-def get_create_projects():
+@token_required
+def get_create_projects(current_user):
     if request.method == "GET":
+
+        if current_user.id != 1:
+            abort(401, "Access Denied")
+
         projects = [project.to_dict() for project in Project.query.all()]
         return jsonify(projects)
     elif request.method == 'POST':
@@ -689,12 +769,12 @@ def get_create_projects():
 
         name = create_fields['name']
         description = create_fields['description']
-        user_id = create_fields['user_id']
+        user_id = current_user.id
 
-        project = Project(name=name, description=description, user_id= user_id)
+        project = Project(name=name, description=description, user_id=user_id)
 
         if 'highlight' in create_fields.keys():
-            setattr(project, 'highlight', create_fields['highlight'] == 'True')
+            setattr(project, 'highlight', create_fields['highlight'])
 
         db.session.add(project)
         db.session.commit()
@@ -706,16 +786,25 @@ def get_create_projects():
 
         db.session.commit()
 
-        return "<p>Added New Project</p>"
+        response = make_response(jsonify({"message": "Added New Project"}))
+        return response, 200
 
 
-@views.route('/projects/<int:project_id>', methods=['GET', 'PUT'])
-def get_update_project(project_id):
+@views.route('/projects/<int:project_id>/', methods=['GET', 'PUT'])
+@token_required
+def get_update_project(project_id, current_user):
     project = Project.query.get_or_404(project_id)
     if request.method == 'GET':
+
+        if project.user_id != current_user.id and current_user.id != 1:
+            abort(401, "Access Denied")
+
         return jsonify(project.to_dict())
     if request.method == 'PUT':
         put_fields = request.json
+
+        if project.user_id != current_user.id:
+            abort(401, "Access Denied")
 
         if 'tools' in put_fields.keys():
             for tool_id in put_fields['tools']:
@@ -727,7 +816,7 @@ def get_update_project(project_id):
             del put_fields['tools']
 
         if 'highlight' in put_fields.keys():
-            setattr(project, 'highlight', put_fields['highlight'] == 'True')
+            setattr(project, 'highlight', put_fields['highlight'])
             del put_fields['highlight']
 
         for key, value in put_fields.items():
@@ -735,12 +824,59 @@ def get_update_project(project_id):
                 setattr(project, key, value)
 
         db.session.commit()
-        return "<p>Updated Project</p>"
+
+        response = make_response(jsonify({"message": "Updated Project"}))
+        return response, 200
+    
+
+@views.route('projects/<int:project_id>/image', methods=['GET', 'POST'])
+@token_required
+def update_project_image(project_id, current_user):
+    project = Project.query.get_or_404(project_id)
+
+    if project.user_id != current_user.id and current_user.id != 1:
+        abort(401, "Access Denied")
+
+    if request.method == 'POST':
+        uploaded_file = request.files['file']
+        new_pic = f"{new_filename()}{get_file_extension(uploaded_file.filename)}"
+
+        if project.user_id != current_user.id:
+            abort(401, "Access Denied")
+
+        if uploaded_file.filename != '':
+            # Remove user's existing profile pic
+
+            if project.image is not None:
+                os.remove(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                       project.image))
+
+            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                            new_pic))
+
+        project.image = new_pic
+        db.session.commit()
+        
+        response = make_response(jsonify({"message": "Updated Project Image"}))
+        return response, 200
+    return f'''
+    <!doctype html>
+    <title>Upload Profile Picture</title>
+    <h1>Upload Profile Picture</h1>
+    <p>{project.name} - Img {project.image}</p>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file accept=".png,.jpg,.jpeg,.gif">
+      <input type=submit value=Upload>
+    </form>
+    '''
 
 
 @views.route("/tools/", methods=['GET', 'POST'])
-def get_create_tools():
+@token_required
+def get_create_tools(current_user):
+
     if request.method == 'GET':
+
         tools = [tool.to_dict() for tool in Tool.query.all()]
         return jsonify(tools)
     elif request.method == 'POST':
@@ -758,48 +894,44 @@ def get_create_tools():
         return response, 200
 
 
-@views.route('projects/<int:project_id>/image', methods=['GET', 'POST'])
-def update_project_image(project_id):
-    project = Project.query.get_or_404(project_id)
-    user = User.query.get_or_404(project.user_id)
+@views.route("/tools/search/", methods=['GET'])
+@token_required
+def find_tool(current_user):
+    tool_string = request.args.get('tool_string')
 
-    if request.method == 'POST':
-        uploaded_file = request.files['file']
-        new_pic = f"{user.username}-proj-{project_id}{get_file_extension(uploaded_file.filename)}"
+    query = text(f"""
+                SELECT *
+                FROM tool
+                WHERE name LIKE "{tool_string + '%'}";
+            """)
+    tools_found = db.session.execute(query)
 
-        if uploaded_file.filename != '':
-            # Remove user's existing profile pic
+    tools_list = [{"id": tool.id, "name": tool.name} for tool in tools_found]
 
-            if project.image:
-                os.remove(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
-                                       project.image))
+    result = {
+        "tools": tools_list
+    }
 
-            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
-                                            new_pic))
-
-        project.image = new_pic
-        db.session.commit()
-        return f"<p>{new_pic}</p>"
-    return f'''
-    <!doctype html>
-    <title>Upload Profile Picture</title>
-    <h1>Upload Profile Picture</h1>
-    {project.name}
-    <form method=post enctype=multipart/form-data>
-      <input type=file name=file accept=".png,.jpg,.jpeg,.gif">
-      <input type=submit value=Upload>
-    </form>
-    '''
+    return jsonify(result)    
 
 
 @views.route('locations/', methods=['GET', 'POST'])
-def get_add_locations():
+@token_required
+def get_add_locations(current_user):
     if request.method == "GET":
         locations = [location.to_dict() for location in Location.query.all()]
 
         return jsonify(locations)
     if request.method == "POST":
         post_fields = request.form.to_dict()
+
+        # Add a feature later to check whether the location already exists
+        # query = text(f"""
+        #         SELECT *
+        #         FROM tool
+        #         WHERE (name, city, country) = {f"({post_fields['city']}, {post_fields[]}, {})"};
+        #         """)
+        
         location = Location(city=post_fields['city'], state=post_fields['state'],
         country=post_fields[
             'country'])
@@ -807,20 +939,217 @@ def get_add_locations():
         db.session.add(location)
         db.session.commit()
 
-        return "<p>Added Location</p>"
+        response = make_response(jsonify({"message": "Added New Location"}))
+        return response, 200
 
 
-@views.route('locations/<int:location_id>', methods=["GET", "PUT"])
-def get_update_location(location_id):
+@views.route('locations/<int:location_id>/', methods=["GET"])
+@token_required
+def get_location(location_id, current_user):
     location = Location.query.get_or_404(location_id)
     if request.method == "GET":
         return jsonify(location.to_dict())
+
+
+@views.route("/locations/search/", methods=['POST'])
+@token_required
+def find_location(current_user):
+    """
+    Finds locations based on city, state, and/or country.
+    Requires a POST request with JSON data.
+    """
+    search_data = request.get_json()
+
+    if not search_data:
+        return jsonify({'message': 'No search parameters provided'}), 400
+
+    city = search_data.get('city', '')
+    state = search_data.get('state', '')
+    country = search_data.get('country', '')
+
+    # Build the query dynamically
+    query_parts = []
+    if city:
+        query_parts.append(f"city LIKE '{city}%'")
+    if state:
+        query_parts.append(f"state LIKE '{state}%'")
+    if country:
+        query_parts.append(f"country LIKE '{country}%'")
+
+    if not query_parts:
+        return jsonify({'message': 'At least one search parameter (city, state, or country) is required'}), 400
+
+    # Add '1=1' to handle the case where no other conditions are added
+    sql_query = "SELECT * FROM location WHERE 1=1 "
+    if query_parts:  # Add AND only if there are conditions
+        sql_query += " AND " + " AND ".join(query_parts) + ";"
+    else:
+        sql_query += ";" #this is needed
+
+    query = text(sql_query)
+
+    try:
+        locations_found = db.session.execute(query)
+        # Fetch all results at once and convert to a list of dictionaries
+        locations_list = [{"id": loc.id, "city": loc.city, "state": loc.state, "country": loc.country} for loc in locations_found]
+
+        result = {
+            "locations": locations_list
+        }
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({'message': f'Error: {str(e)}'}), 500
+
+
+@views.route("/client_testimonials/", methods=['GET', 'POST'])
+@token_required
+def get_create_testimonials(current_user):
+    if request.method == 'GET':
+        if current_user.id != 1:
+            abort(401, "Access Denied")
+
+        testimonials = [testimonial.to_dict() for testimonial in ClientTestimonial.query.all()]
+
+        return jsonify(testimonials)
+    if request.method == 'POST':
+        create_fields = request.form
+        
+        new_testimonial = ClientTestimonial(user_id=current_user.id, testimonial=create_fields["testimonial"], organization=create_fields['organization'], name=create_fields['name'])
+
+        db.session.add(new_testimonial)
+        db.session.commit() 
+
+        response = make_response(jsonify({"message": "Added New Testimonial"}))
+        return response, 200
+
+
+@views.route("/client_testimonials/<int:testimonial_id>/", methods=['GET', 'PUT'])
+@token_required
+def get_update_client_testimonial(testimonial_id, current_user):
+    testimonial = ClientTestimonial.query.get_or_404(testimonial_id)
+
+    if request.method == 'GET':
+
+        if current_user.id != 1 and current_user.id != testimonial.user_id:
+            abort(401, "Access Denied")
+
+        return jsonify(testimonial.to_dict())
+    
     if request.method == "PUT":
-        update_fields = request.form.to_dict()
-        for key, value in update_fields.items():
-            if value is not None:
-                setattr(location, key, value)
+        put_fields = request.form
+        
+        if current_user.id != testimonial.user_id:
+            abort(401, "Access Denied")
+
+        for key, value in put_fields.items():
+            if value is not None and key in ['name', 'organization', 'testimonial']:
+                setattr(testimonial, key, value)
 
         db.session.commit()
-        return jsonify(location.to_dict())
+        
+        response = make_response(jsonify({"message": "Updated Client Testimonial"}))
+        return response, 200
+
+
+@views.route("/client_testimonials/<int:testimonial_id>/pic/", methods=['GET', 'POST'])
+@token_required
+def get_update_client_image(testimonial_id, current_user):
+    testimonial = ClientTestimonial.query.get_or_404(testimonial_id)
+    user = User.query.filter_by(username=current_user.username).first()
+
+    if testimonial.user_id != current_user.id and current_user.id != 1:
+        abort(401, "Access Denied")
+
+    if request.method == 'POST':
+        uploaded_file = request.files['file']
+
+        if testimonial.user_id != current_user.id:
+            abort(401, "Access Denied")
+
+        new_pic = f"{new_filename()}{get_file_extension(uploaded_file.filename)}"
+
+        if uploaded_file.filename != '':
+            # Remove user's existing profile pic
+
+            if testimonial.image is not None:
+                os.remove(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                       testimonial.image))
+
+            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'],
+                                            new_pic))
+
+        testimonial.image = new_pic
+        db.session.commit()
+
+        response = make_response(jsonify({"message": "Updated Client Image"}))
+        return response, 200
+    return f'''
+    <!doctype html>
+    <title>Upload Profile Picture</title>
+    <h1>Upload Profile Picture</h1>
+    <img style='width: 100px; height: auto; border-radius: 50%;' src='../../../static/images/{testimonial.image}' alt='Picture of {testimonial.name}'>
+    <p>{testimonial.testimonial}</p>
+    <p>{testimonial.name}</p>
+    <p>{testimonial.organization}<p>
+    <form method=post enctype=multipart/form-data>
+      <input type=file name=file accept=".png,.jpg,.jpeg,.gif">
+      <input type=submit value=Upload>
+    </form>
+    '''
+
+
+@views.route("/contact_sections/", methods=['GET', 'POST'])
+@token_required
+def get_create_contact_sections(current_user):
+    
+    if request.method == 'GET':
+        if current_user.id != 1:
+            abort(401, "Access Denied")
+
+        contact_sections = [contact.to_dict() for contact in ContactSection.query.all()]
+        return jsonify(contact_sections)
+    if request.method == "POST":
+        create_fields = request.form
+
+        if check_user_id_exists_in_table('contact_section', current_user.id):
+            abort(409, "Already Exists")
+        new_contact_section = ContactSection(user_id=current_user.id)
+
+        for key, value in create_fields.items():
+            if value is not None and key in ['intro_text', 'phone_number', 'contact_email', 'location_id']:
+                setattr(new_contact_section, key, value)
+
+        db.session.add(new_contact_section)
+        db.session.commit()
+
+        response = make_response(jsonify({"message": "Created new Contact Section"}))
+        response, 200
+
+
+@views.route("/contact_sections/<int:contact_sect_id>/", methods=['GET', 'PUT'])
+@token_required
+def get_update_contact_section(contact_sect_id, current_user):
+    contact_section = ContactSection.query.get_or_404(contact_sect_id)
+
+    if request.method == "GET":
+
+        if current_user.id != 1 and contact_section.user_id != current_user.id:
+            abort(401, "Access Denied")
+
+        return jsonify(contact_section.to_dict())
+    if request.method == 'PUT':
+        put_fields = request.form.to_dict()
+
+        if contact_section.user_id != current_user.id:
+            abort(401, "Access Denied")
+
+        for key, value in put_fields.items():
+            if value is not None and key in ['intro_text', 'phone_number', 'contact_email', 'location_id']:
+                put_fields['location_id'] = int(put_fields['location_id'])
+                setattr(contact_section, key, value)
+
+        db.session.commit()
+
+        response = make_response(jsonify({"message": "Updated Contact Section"}))
+        return response, 200
 

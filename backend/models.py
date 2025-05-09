@@ -17,6 +17,25 @@ about_tools = db.Table(
 )
 
 
+class ClientTestimonial(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    image = db.Column(db.String(10000))
+    name = db.Column(db.String(150), nullable=False)
+    testimonial = db.Column(db.String(150), nullable=False)
+    organization = db.Column(db.String(10000), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'name': self.name,
+            'image': self.image,
+            'testimonial': self.testimonial,
+            'organization': self.organization,
+            'user_id': self.user_id
+        }
+
+
 class Project(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(100), nullable=False)
@@ -25,7 +44,7 @@ class Project(db.Model):
     image = db.Column(db.String)
     tools = db.relationship('Tool', secondary=project_tools, backref='projects', lazy='subquery')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
+ 
     def to_dict(self):
         return {
             'id': self.id,
@@ -154,8 +173,8 @@ class User(UserMixin, db.Model):
     experiences = db.relationship('Experience', backref='user', lazy=True)
     about_section = db.relationship('AboutSection', backref='user', uselist=False)
     services_section = db.relationship("ServicesSection", backref='user', uselist=False)
-    clients = db.relationship('Client', backref='user', lazy=True)
     contact_section = db.relationship('ContactSection', backref='user', uselist=False)
+    testimonials = db.relationship('ClientTestimonial', backref='user', lazy=True)
 
     def to_dict(self):
         portfolio = self.portfolio.to_dict() if self.portfolio else None
@@ -178,7 +197,7 @@ class User(UserMixin, db.Model):
             'experiences': [experience.to_dict() for experience in self.experiences],
             'about_section': about_section,
             'services_section': services_section,
-            'clients': [client.to_dict() for client in self.clients],
+            'client_testimonials': [testimonial.to_dict() for testimonial in self.testimonials],
             'contact_section': contact_section
         }
 
@@ -235,31 +254,14 @@ class ServicesSection(db.Model):
             'user_id': self.user_id,
             'services': [service.to_dict() for service in self.services]
         }
-
-
-class Client(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    image = db.Column(db.String(10000))
-    name = db.Column(db.String(150))
-    organization = db.Column(db.String(10000), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
-    def to_dict(self):
-        return {
-            'id': self.id,
-            'name': self.name,
-            'image': self.image,
-            'organization': self.organization,
-            'user_id': self.user_id
-        }
-
+    
 
 class ContactSection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     intro_text = db.Column(db.String(10000))
-    phone_number = db.Column(db.Integer, nullable=False)
-    contact_email = db.Column(db.String(150), unique=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    phone_number = db.Column(db.String(15))
+    contact_email = db.Column(db.String(150))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), unique=True, nullable=False)
     location_id = db.Column(db.Integer, db.ForeignKey('location.id'))
 
     def to_dict(self):
