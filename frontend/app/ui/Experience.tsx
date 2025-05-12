@@ -3,7 +3,7 @@
 import { workExperiences } from '@/app/lib/placeholder-data'
 import { libre_franklin } from './fonts'
 import { motion } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const container = {
     initial: { 
@@ -30,7 +30,44 @@ const item  = {
 
 export default function Experience(){
 
+    // useEffect(() => {
+    //     const getWorkExperiences = async () => {
+
+    //         try{
+    //             const response = await fetch('https://showyy.onrender.com/portfolios', {
+    //                 method: "GET",
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                     'Authorization': getCookieValue('jwt_token') ? getCookieValue('jwt_token'): 'None'
+    //                 }
+    //             })
+
+    //             const data = await response.json()
+    //             console.log(data)
+    //         }catch(e: any){
+    //             console.log(e.message)
+    //         }
+    //     }
+    //     getWorkExperiences()
+    // }, [])
+
     const [ activeIndex, setActiveIndex ] = useState(1)
+
+    // function getCookieValue(name: string) {
+    //     if (typeof window === 'undefined') {
+    //       console.warn('This code should only be run in a browser environment.');
+    //       return null;
+    //     }
+    //     const value = `; ${document.cookie}`;
+    //     const parts = value.split(`; ${name}=`);
+    //     if (parts.length === 2) {
+    //       const cookieValue = parts.pop()?.split(';').shift() || null;
+    //       console.log(`Value of cookie "${name}":`, cookieValue); // Log the value
+    //       return cookieValue; // Return the value if needed
+    //     }
+    //     console.log(`Cookie "${name}" not found.`); // Log if not found
+    //     return null;
+    //   }
 
     return(
         <section className="mt-20 mx-5 sm:mx-10 mx-40 sm:mx-10 lg:mx-20 xl:mx-40 dark:text-white" id='experience'>
@@ -73,7 +110,7 @@ export default function Experience(){
                         ))}
                 </div>
             </div>
-            
+            <p>{}</p>
         </section>
         
     )

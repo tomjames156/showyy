@@ -874,7 +874,6 @@ def update_project_image(project_id, current_user):
 @views.route("/tools/", methods=['GET', 'POST'])
 @token_required
 def get_create_tools(current_user):
-
     if request.method == 'GET':
 
         tools = [tool.to_dict() for tool in Tool.query.all()]
