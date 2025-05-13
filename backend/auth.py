@@ -166,8 +166,8 @@ def login_user():
                 token = jwt.encode({'public_id': user.public_id, 'exp': datetime.datetime.now(
                     datetime.timezone.utc) + datetime.timedelta(days=30)}, current_app.config[
                     'SECRET_KEY'], algorithm='HS256')
-
-                set_jwt_cookie(response, token)
+                
+                response = make_response(jsonify({"accessToken": token}))
 
                 return response, 200
             else:
