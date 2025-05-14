@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { inter } from '@/app/ui/fonts'
-import { Suspense } from "react";
+import { inter } from '@/app/ui/fonts']
 import { ProfileContextProvider } from "@/context/ProfileContext";
 
 export const metadata: Metadata = {
