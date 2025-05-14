@@ -31,8 +31,7 @@ export default function About(){
         const response = await fetch("http://127.0.0.1:5000/users/1/", {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwdWJsaWNfaWQiOiIwOTE1ZDk4Ny01NjhmLTQzYzktYTdlMy1kZjdlNWJjNGRhMmUiLCJleHAiOjE3NDg5NDM4MzV9.XI_bavBdUuLuRS7Lva18sCvIF9uAPu9EUlD6oYEHdlQ`
+                'Content-Type': 'application/json'
             }
         })
         console.log(response.headers)

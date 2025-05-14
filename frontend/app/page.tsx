@@ -11,13 +11,30 @@ import Testimonials from './ui/Testimonials'
 import Contact from './ui/Contact'
 import Footer from './ui/components/Footer'
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
+
+interface UserData {
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  profile: {  // Add the profile property here
+      role: string;
+      resume?: string; //  Optional
+      profile_pic?: string; // Optional
+      location_id: number;
+      social_links?: { name: string; url: string }[]; // Optional
+  };
+  // Add other properties as needed
+}
 
 export default function Home() {
-
-  const [userData, setUserData] = useState({})
+  const searchParams = useSearchParams()
+  const [userData, setUserData] = useState<UserData | {}>({})
+  const username = searchParams.get('username')
 
   const getProfile = async () => {
-    const response = await fetch("http://127.0.0.1:5000/user/1/", {
+    const response = await fetch(`http://127.0.0.1:5000/profile/${username}/`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -25,9 +42,13 @@ export default function Home() {
     })
 
     const profile = await response.json()
-    console.log(profile)
-    return profile
+    console.log(profile.portfolio.role)
+    setUserData(profile)
   }
+
+  useEffect(() => {
+    getProfile()
+  }, [])
 
   return (
     <>
