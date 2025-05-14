@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { inter } from '@/app/ui/fonts'
+import { AuthProvider } from "@/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Tomi's Portfolio",
@@ -12,6 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
+
     <html lang="en" className="dark">
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <link rel="icon" type="/icon.png" href="/favicon-new.png" sizes="32x32"/>
@@ -22,7 +24,9 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased dark:bg-black dark:text`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

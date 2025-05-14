@@ -1,4 +1,4 @@
-import { WorkExperience, ProjectSlide, ProjectTile } from './definitions'
+import { WorkExperience, ProjectSlide, ProjectTile, Service, ClientTestimonial } from './definitions'
 
 export const workExperiences: WorkExperience[] = [
     {
@@ -114,4 +114,35 @@ export const projectTiles: ProjectTile[] = [
         github_link: "https://github.com/tomjames156/food_reviews",
         live_site: "https://tomis-food-reviews.netlify.app/"
     },
+]
+
+export const services: Service[] = [
+    {
+        service_id: 1,
+        name: "Cloud Engineering",
+        description: "Encompassing tasks like cloud migration, architecture, security and optimization while also ensuring data accessibility, security, and efficient processing.",
+        image: "cloud.png"
+    },
+    {
+        service_id: 2,
+        name: "Cloud Engineering",
+        description: "Encompassing tasks like cloud migration, architecture, security and optimization while also ensuring data accessibility, security, and efficient processing.",
+        image: "cloud.png"
+    },
+    {
+        service_id: 3,
+        name: "Cloud Engineering",
+        description: "Encompassing tasks like cloud migration, architecture, security and optimization while also ensuring data accessibility, security, and efficient processing.",
+        image: "cloud.png"
+    }
+]
+
+export const clientTestimonials: ClientTestimonial[] = [
+    {
+        testimonial_id : 1, 
+        name: "Eze Josh",
+        organization: "Tourify",
+        testimonial: "Lorem ipsum dolor sit amet consectetur. Viverra odio orci tellus ornare blandit. Eros nisl vulputate suscipit. Proin commodo dui ultricies senectus aliquam.",
+        image: "profile_user.png"
+    }
 ]

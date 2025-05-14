@@ -8,6 +8,7 @@ import Image from "next/image"
 import gmail from "../../public/gmail logo.png"
 import github from "../../public/github-logo.png"
 import linkedin from "../../public/linkedin.png"
+import { useAuth } from "@/context/AuthContext"
 
 const container = {
     initial: { opacity: 1, scale: 0},
@@ -23,9 +24,27 @@ const container = {
 
 export default function About(){
 
+    const { token } = useAuth()
+
+    const getProfile = async () => {
+        console.log(token)
+        const response = await fetch("http://127.0.0.1:5000/users/1/", {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJwdWJsaWNfaWQiOiIwOTE1ZDk4Ny01NjhmLTQzYzktYTdlMy1kZjdlNWJjNGRhMmUiLCJleHAiOjE3NDg5NDM4MzV9.XI_bavBdUuLuRS7Lva18sCvIF9uAPu9EUlD6oYEHdlQ`
+            }
+        })
+        console.log(response.headers)
+    
+        const profile = await response.json()
+        console.log(profile)
+        return profile
+    }
+
     return (
         <section id="about" className="mx-5 sm:mx-10 lg:mx-20 xl:mx-40 dark:text-white">
-            <h1 className="font-semibold text-[1.4rem] xs:text-2xl">About Me</h1>
+            <h1 className="font-semibold text-[1.4rem] xs:text-2xl" onClick={getProfile}>About Me</h1>
             <div className="flex gap-20 flex-col items-center lg:flex-row lg:items-start">
                 <div className="basis-[80%]">
                     <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>I am currently studying for a Bachelor&apos;s of Science in Software engineering student at Nile University of Nigeria, Abuja. At the same time, I&apos;m working towards a career in Data Science through learning from resources online.</p>
@@ -63,7 +82,7 @@ export default function About(){
                             alt='myself'
                             width={300}
                             height={150}
-                            className="rounded-3xl"
+                            className="rounded-3xl blur-xl"
                         />
                     </motion.div>
                     <div className="flex items-center justify-center gap-4 mt-2 h-fit sm:hidden">
