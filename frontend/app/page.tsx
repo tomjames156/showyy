@@ -14,7 +14,13 @@ import { useContext } from 'react'
 import { ProfileContext } from '@/context/ProfileContext'
 
 export default function Home() {
-  const { profile } = useContext(ProfileContext)
+  const context = useContext(ProfileContext)
+
+  if (!context) {
+    return <div>Profile data is not available.  Make sure you are within a ProfileProvider.</div>;
+  }
+
+  const { profile } = context
 
   return (profile ?
     <>
