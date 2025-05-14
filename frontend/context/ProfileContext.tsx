@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useState, useEffect } from 'react';
+import { Suspense } from 'react';
 import { UserData } from '@/app/lib/definitions';
 import { useSearchParams } from 'next/navigation'; // Import useParams
 
@@ -62,7 +63,9 @@ export function ProfileContextProvider({ children }: { children: React.ReactNode
 
   return (
     <ProfileContext.Provider value={contextValue}>
-      {children}
+      <Suspense fallback={<div>...Loading</div>}>
+        {children}
+      </Suspense>
     </ProfileContext.Provider>
   );
 }
