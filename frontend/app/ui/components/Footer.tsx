@@ -29,6 +29,7 @@ export default function Footer (){
                     href={link.link_value}
                     target="_blank"
                     className='hover:-mt-1'
+                    key={index}
                 >
                     <Image
                         src={getLinkIcon(link.link_type)}

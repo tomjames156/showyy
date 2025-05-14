@@ -1,13 +1,10 @@
 'use client'
 
 import { useState} from "react"
-import { useRouter } from "next/navigation"
 
 function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
-  const router = useRouter()
-  const { login } = useAuth()
 
   const updateUsername = (e: any) => {
     setUsername(e.target.value)
@@ -15,10 +12,6 @@ function Login() {
 
   const updatePassword = (e: any) => {
     setPassword(e.target.value)
-  }
-
-  const backHome = () => {
-    router.push("/")
   }
 
   const handleSubmit = async (e: any) => {
@@ -35,8 +28,6 @@ function Login() {
 
     const responseData = await response.json();
     console.log(responseData)
-    login(responseData['accessToken'])
-    // backHome()
   }
 
   return (

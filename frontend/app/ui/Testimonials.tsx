@@ -1,10 +1,9 @@
 import Image from "next/image"
-import { useState } from "react"
 import { libre_franklin } from "./fonts"
 import { userTestimonials } from "../lib/placeholder-data"
 
 export default function Testimonials() {
-    const [activeIndex, setActiveIndex] = useState(0)
+    // const [activeIndex, setActiveIndex] = useState(0)
     const allTestimonials = [{}, {}, {}, {}]
 
   return (
@@ -51,7 +50,8 @@ export default function Testimonials() {
             {
                 allTestimonials.map((testimonial, index) => {
                     return (
-                        <div className="w-[7px] h-[7px] bg-black rounded-[50%]"></div>
+                        <div key={index} className="w-[7px] h-[7px] bg-black rounded-[50%]">
+                        </div>
                     )
                 })
             }
