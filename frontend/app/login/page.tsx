@@ -2,7 +2,6 @@
 
 import { useState} from "react"
 import { useRouter } from "next/navigation"
-import { useAuth } from "@/context/AuthContext"
 
 function Login() {
   const [username, setUsername] = useState("")
