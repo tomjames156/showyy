@@ -16,7 +16,7 @@ import { ProfileContext } from '@/context/ProfileContext'
 export default function Home() {
   const { profile } = useContext(ProfileContext)
 
-  return (profile &&
+  return (profile ?
     <>
       <Navbar/>
       <Hero />
@@ -27,6 +27,6 @@ export default function Home() {
       <Testimonials/>
       <Contact/>
       <Footer/>
-    </>
+    </> : <p>No Profile</p>
   )
 }
