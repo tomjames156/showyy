@@ -26,7 +26,7 @@ export default function RootLayout({
         className={`${inter.className} antialiased dark:bg-black dark:text`}
       >
         <ProfileContextProvider>
-          <Suspense>
+          <Suspense fallback={<div>...Loading</div>}>
             {children}
           </Suspense>
         </ProfileContextProvider>
