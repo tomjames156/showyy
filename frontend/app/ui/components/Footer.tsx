@@ -5,7 +5,13 @@ import { useContext } from "react"
 import { ProfileContext } from "@/context/ProfileContext"
 
 export default function Footer (){
-    const {profile} = useContext(ProfileContext)
+    const context = useContext(ProfileContext)
+
+    if (!context) {
+        return <div>Profile data is not available.  Make sure you are within a ProfileProvider.</div>;
+    }
+
+    const { profile } = context
 
     const getLinkIcon = (link_type: string) => {
         switch (link_type){
@@ -17,15 +23,16 @@ export default function Footer (){
                 return '/linkedin-logo.png'
             case "Instagram":
                 return '/instagram.png'
+            default:
+                return '/github.png'
         }
-
     }
 
     return (
     <footer className="mt-32 mb-8">
         <div className="flex justify-center gap-10">
-            {profile.portfolio.social_links ? 
-                profile.portfolio.social_links.map((link, index) => (<Link
+            {profile?.portfolio.social_links ? 
+                profile?.portfolio.social_links.map((link, index) => (<Link
                     href={link.link_value}
                     target="_blank"
                     className='hover:-mt-1'

@@ -5,7 +5,13 @@ import { ProfileContext } from "@/context/ProfileContext"
 import Image from "next/image"
 
 export default function Services() {
-  const {profile} = useContext(ProfileContext)
+  const context = useContext(ProfileContext)
+
+    if (!context) {
+      return <div>Profile data is not available.  Make sure you are within a ProfileProvider.</div>;
+  }
+
+  const { profile } = context
 
   const container = {
     initial: { opacity: 1, scale: 0},
@@ -30,14 +36,14 @@ export default function Services() {
   return (
     <section id="about" className="mx-5 sm:mx-10 lg:mx-20 xl:mx-40 mt-10 xl:mt-40 dark:text-white">
       <h1 className="font-semibold text-[1.4rem] xs:text-2xl">Services</h1>
-      {profile.intro_text && <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>{profile.intro_text}</p>}
+      {profile?.services_section.intro_text && <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>{profile.services_section.intro_text}</p>}
       <motion.ul 
         className='grid grid-cols-1 gap-x-20 gap-y-6 mt-8 xs:grid-cols-2 sm:grid-cols-2 sm:justify-between lg:grid-cols-3  dark:text-white'
         variants={container}
         initial='initial'
         whileInView="whileInView"
         viewport={{amount: 0.1, once: true}}>
-      {profile.services_section.services ? profile.services_section.services.map((service, index) => {
+      {profile?.services_section.services ? profile.services_section.services.map((service, index) => {
           return (
           <motion.li 
               key={index} 

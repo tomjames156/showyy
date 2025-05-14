@@ -98,7 +98,7 @@ export type UserData = {
     about_section: AboutSection
     client_testimonials: ClientTestimonial[]
     contact_section: ContactSection
-    experiences: Experience
+    experiences: Experience[]
     portfolio: Portfolio
     projects: Project[]
     services_section: ServicesSection

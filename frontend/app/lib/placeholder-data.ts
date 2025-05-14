@@ -218,13 +218,22 @@ const my_points : BulletPoint[] = [
     }
 ]
 
-const my_experience : Experience = {
-    end_date: "Wed, 10 Jun 2026 00:00:00 GMT",
-    organization: "Nile University of Nigeria",
-    role: "Software Engineering Student",
-    start_date: "Tue, 20 Sep 2022 00:00:00 GMT",
-    bullet_points: my_points
-}
+const my_experiences : Experience[] = [
+    {
+        end_date: "Wed, 10 Jun 2026 00:00:00 GMT",
+        organization: "Nile University of Nigeria",
+        role: "Software Engineering Student",
+        start_date: "Tue, 20 Sep 2022 00:00:00 GMT",
+        bullet_points: my_points
+    },
+    {
+        end_date: "Wed, 10 Jun 2026 00:00:00 GMT",
+        organization: "Nile University of Nigeria",
+        role: "Software Engineering Student",
+        start_date: "Tue, 20 Sep 2022 00:00:00 GMT",
+        bullet_points: my_points
+    }
+]
 
 const my_links : SocialLink[] = [
     {
@@ -244,7 +253,7 @@ const my_portfolio : Portfolio = {
 
 export const defaultData: UserData ={
     username: "tom1sin",
-    experiences: my_experience,
+    experiences: my_experiences,
     about_section: about_me,
     client_testimonials: userTestimonials,
     contact_section: contact_me,

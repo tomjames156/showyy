@@ -5,7 +5,13 @@ import { useContext } from 'react'
 import { ProfileContext } from '@/context/ProfileContext'
 
 export default function Hero(){
-    const { profile } = useContext(ProfileContext)
+    const context = useContext(ProfileContext)
+
+    if (!context) {
+        return <div>Profile data is not available.  Make sure you are within a ProfileProvider.</div>;
+    }
+
+    const { profile } = context
 
     const getLinkIcon = (link_type: string) => {
         switch (link_type){
@@ -17,6 +23,8 @@ export default function Hero(){
                 return '/linkedin-logo.png'
             case "Instagram":
                 return '/instagram.png'
+            default:
+                return '/github.png'
         }
 
     }
@@ -25,9 +33,9 @@ export default function Hero(){
         <section className='flex justify-center pt-60 pb-20 lg:pb-60 dark:text-white' id='hero'>
             <div className='flex-col text-center max-w-[85%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[45%]'>
                 <h1 className='text-[1.75rem] mt-10 text-2xl xs:text-3xl'>I&apos;m a</h1>
-                <h3 className={`text-[1.3rem] mt-1 font-medium sm:text-[1.5rem] sm:mt-4 ${kode_mono.className} uppercase`}>{profile.portfolio.role}</h3>
+                <h3 className={`text-[1.3rem] mt-1 font-medium sm:text-[1.5rem] sm:mt-4 ${kode_mono.className} uppercase`}>{profile?.portfolio.role}</h3>
                 <div className='flex justify-center gap-6 mt-4'>
-                    {profile.portfolio.social_links ? 
+                    {profile?.portfolio.social_links ? 
                         profile.portfolio.social_links.map((link, index) => (<Link
                             href={link.link_value}
                             target="_blank"

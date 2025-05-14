@@ -25,26 +25,32 @@ const container = {
 
 export default function About(){
 
-    const {profile} = useContext(ProfileContext)
+    const context = useContext(ProfileContext)
+
+    if (!context) {
+        return <div>Profile data is not available.  Make sure you are within a ProfileProvider.</div>;
+    }
+
+    const { profile } = context
 
     return (
         <section id="about" className="mx-5 sm:mx-10 lg:mx-20 xl:mx-40 dark:text-white">
             <h1 className="font-semibold text-[1.4rem] xs:text-2xl">About Me</h1>
             <div className="flex gap-20 flex-col items-center lg:flex-row lg:items-start">
                 <div className="basis-[80%]">
-                    {profile.about_section.paragraph1 &&  <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>{profile.about_section.paragraph1}</p>}
-                    {profile.about_section.skills_intro && <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>{profile.about_section.skills_intro}</p>}
+                    {profile?.about_section.paragraph1 &&  <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>{profile.about_section.paragraph1}</p>}
+                    {profile?.about_section.skills_intro && <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>{profile.about_section.skills_intro}</p>}
                     <motion.ul 
                         className="w-[50%] mt-5 grid grid-cols-1 xxs:grid-cols-2"
                         variants={container}
                         initial='initial'
                         whileInView="whileInView"
                         viewport={{once: true}}>
-                        {profile.about_section.tools && profile.about_section.tools.map((tool, index) => (
+                        {profile?.about_section.tools && profile.about_section.tools.map((tool, index) => (
                             <TechnologyUsed key={index} technology={tool.name}/>
                         ))}
                     </motion.ul>
-                    {profile.about_section.paragraph2 && <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>{profile.about_section.paragraph2}</p>}
+                    {profile?.about_section.paragraph2 && <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>{profile.about_section.paragraph2}</p>}
                 </div>
                 <div className="basis-[20%]">
                     <motion.div

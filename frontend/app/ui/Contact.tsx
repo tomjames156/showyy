@@ -4,9 +4,15 @@ import { useContext } from "react"
 import { ProfileContext } from "@/context/ProfileContext"
 
 export default function Contact() {
-    const { profile } = useContext(ProfileContext)
+    const context = useContext(ProfileContext)
 
-    if(!profile.contact_section){
+    if (!context) {
+        return <div>Profile data is not available.  Make sure you are within a ProfileProvider.</div>;
+    }
+
+    const { profile } = context
+
+    if(!profile?.contact_section){
         return (<section id="about" className="mx-5 sm:mx-10 lg:mx-20 xl:mx-40 mt-10 xl:mt-24 dark:text-white">
             <h1 className="font-semibold text-[1.4rem] xs:text-2xl">Contact Me</h1>
             <p className="mt-4">No Contact Details</p>
@@ -48,8 +54,8 @@ export default function Contact() {
                 height={30}
                 className="mb-4"
             />
-            <h3 className="font-bold text-[1.1rem]">{profile.contact_section.location.city}</h3>
-            <p className={`${libre_franklin.className}`}>{profile.contact_section.location.state}</p>
+            <h3 className="font-bold text-[1.1rem]">{profile.contact_section.location?.city}</h3>
+            <p className={`${libre_franklin.className}`}>{profile.contact_section.location?.state}</p>
         </div>
       </div>
     </section>
