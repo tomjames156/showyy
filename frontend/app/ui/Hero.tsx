@@ -6,7 +6,7 @@ import { ProfileContext } from '@/context/ProfileContext'
 
 export default function Hero(){
     const { profile } = useContext(ProfileContext)
-    
+
     const getLinkIcon = (link_type: string) => {
         switch (link_type){
             case "GitHub":
@@ -23,8 +23,8 @@ export default function Hero(){
 
     return (
         <section className='flex justify-center pt-60 pb-20 lg:pb-60 dark:text-white' id='hero'>
-            <div className='flex-col text-center max-w-[85%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[45%] '>
-                <h1 className='text-[1.75rem] mt-10 text-2xl xs:text-3xl'>I'm a</h1>
+            <div className='flex-col text-center max-w-[85%] sm:max-w-[80%] md:max-w-[70%] lg:max-w-[45%]'>
+                <h1 className='text-[1.75rem] mt-10 text-2xl xs:text-3xl'>I&apos;m a</h1>
                 <h3 className={`text-[1.3rem] mt-1 font-medium sm:text-[1.5rem] sm:mt-4 ${kode_mono.className} uppercase`}>{profile.portfolio.role}</h3>
                 <div className='flex justify-center gap-6 mt-4'>
                     {profile.portfolio.social_links ? 
@@ -32,6 +32,7 @@ export default function Hero(){
                             href={link.link_value}
                             target="_blank"
                             className='hover:-mt-1'
+                            key={index}
                         >
                             <Image
                                 src={getLinkIcon(link.link_type)}

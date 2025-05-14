@@ -1,14 +1,13 @@
 "use client"
 
 import { libre_franklin } from './fonts'
-import { useContext, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import gitLogoBlue from "../../public/git-blue.png"
 import earthBlue from "../../public/earth-blue.png"
 import { projectsSlides, projectTiles } from '../lib/placeholder-data'
 import Image from 'next/image'
-import { ProfileContext } from '@/context/ProfileContext'
 
 const container = {
     initial: { opacity: 1, scale: 0},
