@@ -1,20 +1,20 @@
 'use client'
 
-import { useState} from "react"
+import React, { useState} from "react"
 
 function Login() {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
 
-  const updateUsername = (e: any) => {
+  const updateUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsername(e.target.value)
   }
 
-  const updatePassword = (e: any) => {
+  const updatePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value)
   }
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const formData = new FormData()
