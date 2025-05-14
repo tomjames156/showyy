@@ -1,8 +1,4 @@
 import Link from "next/link"
-import Image from "next/image"
-import gmail from "../../public/gmail logo.png"
-import github from "../../public/github-logo.png"
-import linkedin from "../../public/linkedin.png"
 import { useContext } from "react"
 import { ProfileContext } from "@/context/ProfileContext"
 
@@ -11,7 +7,6 @@ export default function Navbar(){
 
     return (
         <nav className="flex justify-between items-end px-2 bg-white xs:px-5 sm:px-10 lg:px-12 py-4 fixed left-0 top-0 w-full z-20 dark:bg-black dark:text-white">
-            {/* <p>{username}</p> */}
             <div className="flex-2 flex items-center gap-3">
                 <Link href='/' className="font-bold text-[0.95rem] hover:text-gray-500 transition transition-all duration-200 2xs:text-[1rem] xs:text-[1.2rem">{profile.username}</Link>
             </div>

@@ -1,5 +1,4 @@
 import { libre_franklin } from "./fonts"
-import { services } from "../lib/placeholder-data"
 import { motion } from "framer-motion"
 import { useContext } from "react"
 import { ProfileContext } from "@/context/ProfileContext"
