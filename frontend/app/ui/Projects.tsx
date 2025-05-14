@@ -96,8 +96,9 @@ export default function Projects(){
                     {projectsSlides.map((proj, index) => {
                         return(
                             <Image
+                                key={index}
                                 src={proj.proj_img ? proj.proj_img : ""}
-                                alt={`${proj.proj_name} project screenshot`}
+                                alt={`${proj.proj_name} project screenshot ${index}`}
                                 width={50000}
                                 height={100}
                                 className='border-[1px] border-solid border-black blur-[2px] rounded-2xl w-[100%] h-[auto]'

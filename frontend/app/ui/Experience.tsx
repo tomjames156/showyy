@@ -3,7 +3,7 @@
 import { workExperiences } from '@/app/lib/placeholder-data'
 import { libre_franklin } from './fonts'
 import { motion } from 'framer-motion'
-import { useState, useContext, act } from 'react'
+import { useState, useContext } from 'react'
 import { ProfileContext } from '@/context/ProfileContext'
 
 const container = {
@@ -30,6 +30,7 @@ const item  = {
 }
 
 export default function Experience(){
+    const [ activeIndex, setActiveIndex ] = useState(0)
     const context = useContext(ProfileContext)
 
     if (!context) {
@@ -37,8 +38,6 @@ export default function Experience(){
     }
 
     const { profile } = context
-
-    const [ activeIndex, setActiveIndex ] = useState(0)
 
     return(
         <section className="mt-20 mx-5 sm:mx-10 mx-40 sm:mx-10 lg:mx-20 xl:mx-40 dark:text-white" id='experience'>
