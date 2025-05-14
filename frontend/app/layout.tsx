@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { inter } from '@/app/ui/fonts'
+import { Suspense } from "react";
 import { ProfileContextProvider } from "@/context/ProfileContext";
 
 export const metadata: Metadata = {
@@ -25,7 +26,9 @@ export default function RootLayout({
         className={`${inter.className} antialiased dark:bg-black dark:text`}
       >
         <ProfileContextProvider>
-          {children}
+          <Suspense>
+            {children}
+          </Suspense>
         </ProfileContextProvider>
       </body>
     </html>
