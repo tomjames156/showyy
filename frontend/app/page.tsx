@@ -14,6 +14,7 @@ import { useContext } from 'react'
 import { ProfileContext } from '@/context/ProfileContext'
 
 export default function Home() {
+
   const context = useContext(ProfileContext)
 
   if (!context) {
