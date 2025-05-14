@@ -3,12 +3,13 @@
 import TechnologyUsed from "./components/TechnologyUsed"
 import { libre_franklin } from './fonts'
 import { motion } from "framer-motion"
+import { useContext } from "react"
+import { ProfileContext } from "@/context/ProfileContext"
 import Link from "next/link"
 import Image from "next/image"
 import gmail from "../../public/gmail logo.png"
 import github from "../../public/github-logo.png"
 import linkedin from "../../public/linkedin.png"
-import { useAuth } from "@/context/AuthContext"
 
 const container = {
     initial: { opacity: 1, scale: 0},
@@ -24,44 +25,26 @@ const container = {
 
 export default function About(){
 
-    const { token } = useAuth()
-
-    const getProfile = async () => {
-        console.log(token)
-        const response = await fetch("http://127.0.0.1:5000/users/1/", {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        console.log(response.headers)
-    
-        const profile = await response.json()
-        console.log(profile)
-        return profile
-    }
+    const {profile} = useContext(ProfileContext)
 
     return (
         <section id="about" className="mx-5 sm:mx-10 lg:mx-20 xl:mx-40 dark:text-white">
-            <h1 className="font-semibold text-[1.4rem] xs:text-2xl" onClick={getProfile}>About Me</h1>
+            <h1 className="font-semibold text-[1.4rem] xs:text-2xl">About Me</h1>
             <div className="flex gap-20 flex-col items-center lg:flex-row lg:items-start">
                 <div className="basis-[80%]">
-                    <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>I am currently studying for a Bachelor&apos;s of Science in Software engineering student at Nile University of Nigeria, Abuja. At the same time, I&apos;m working towards a career in Data Science through learning from resources online.</p>
-                    <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>Here are some technologies I’ve worked with:</p>
+                    {profile.about_section.paragraph1 &&  <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>{profile.about_section.paragraph1}</p>}
+                    {profile.about_section.skills_intro && <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>{profile.about_section.skills_intro}</p>}
                     <motion.ul 
                         className="w-[50%] mt-5 grid grid-cols-1 xxs:grid-cols-2"
                         variants={container}
                         initial='initial'
                         whileInView="whileInView"
                         viewport={{once: true}}>
-                        <TechnologyUsed technology="Pandas"/>
-                        <TechnologyUsed technology="Python"/>
-                        <TechnologyUsed technology="FastAPI"/>
-                        <TechnologyUsed technology="Django"/>
-                        <TechnologyUsed technology="React"/>
-                        <TechnologyUsed technology="JavaScript"/>
+                        {profile.about_section.tools && profile.about_section.tools.map((tool, index) => (
+                            <TechnologyUsed key={index} technology={tool.name}/>
+                        ))}
                     </motion.ul>
-                    <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>Outside of studying, I enjoy lifting weights, swimming, listening to music, watching movies and reading fantasy books. </p>
+                    {profile.about_section.paragraph2 && <p className={`mt-4 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem]`}>{profile.about_section.paragraph2}</p>}
                 </div>
                 <div className="basis-[20%]">
                     <motion.div

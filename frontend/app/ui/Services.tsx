@@ -1,9 +1,12 @@
 import { libre_franklin } from "./fonts"
 import { services } from "../lib/placeholder-data"
 import { motion } from "framer-motion"
+import { useContext } from "react"
+import { ProfileContext } from "@/context/ProfileContext"
 import Image from "next/image"
 
 export default function Services() {
+  const {profile} = useContext(ProfileContext)
 
   const container = {
     initial: { opacity: 1, scale: 0},
@@ -28,14 +31,14 @@ export default function Services() {
   return (
     <section id="about" className="mx-5 sm:mx-10 lg:mx-20 xl:mx-40 mt-10 xl:mt-40 dark:text-white">
       <h1 className="font-semibold text-[1.4rem] xs:text-2xl">Services</h1>
-      <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>These are some of the areas that I’m confident I can provide reliable services in.</p>
+      {profile.intro_text && <p className={`mt-2 leading-[1.4rem] text-[1rem] ${libre_franklin.className} antialiased xs:text-[1.1rem] sm:mt-4`}>{profile.intro_text}</p>}
       <motion.ul 
         className='grid grid-cols-1 gap-x-20 gap-y-6 mt-8 xs:grid-cols-2 sm:grid-cols-2 sm:justify-between lg:grid-cols-3  dark:text-white'
         variants={container}
         initial='initial'
         whileInView="whileInView"
         viewport={{amount: 0.1, once: true}}>
-      {services.map((service, index) => {
+      {profile.services_section.services ? profile.services_section.services.map((service, index) => {
           return (
           <motion.li 
               key={index} 
@@ -49,7 +52,7 @@ export default function Services() {
               >
               <div>
                 <Image
-                  src="/cloud.png"
+                  src={service.image ? service.image : '/cloud.png'}
                   alt="Cloud Icon"
                   width={50}
                   height={50}
@@ -58,7 +61,7 @@ export default function Services() {
               <p className='font-bold text-lg mt-6'>{service.name}</p>
               <p className={`${libre_franklin.className} text-center antialiased text-[1rem] leading-[1.3rem] mt-6 mb-12 xs:text-[1rem]`}>{service.description}</p>
           </motion.li>)
-      }) }
+      }) : <h2>No Services</h2>}
       </motion.ul>
     </section>
   )

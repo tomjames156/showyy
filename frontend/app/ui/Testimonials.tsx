@@ -1,8 +1,7 @@
 import Image from "next/image"
 import { useState } from "react"
 import { libre_franklin } from "./fonts"
-import { clientTestimonials } from "../lib/placeholder-data"
-import { div } from "framer-motion/client"
+import { userTestimonials } from "../lib/placeholder-data"
 
 export default function Testimonials() {
     const [activeIndex, setActiveIndex] = useState(0)
@@ -11,7 +10,7 @@ export default function Testimonials() {
   return (
     <aside className="mx-5 sm:mx-10 lg:mx-20 xl:mx-80 mt-10 dark:text-white">
         {
-            clientTestimonials.map((testimonial, index) => {
+            userTestimonials.map((testimonial, index) => {
                 return (
                     <div className="flex-col justify-items-center text-center" key={index}>
                         <div className="flex gap-4">

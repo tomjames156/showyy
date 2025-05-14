@@ -34,6 +34,14 @@ class ClientTestimonial(db.Model):
             'organization': self.organization,
             'user_id': self.user_id
         }
+    
+    def profile_dict(self):
+        return {
+            'name': self.name,
+            'image': self.image,
+            'testimonial': self.testimonial,
+            'organization': self.organization,
+        }
 
 
 class Project(db.Model):
@@ -55,6 +63,15 @@ class Project(db.Model):
             'tools': [tool.to_dict() for tool in self.tools],
             'user_id': self.user_id
         }
+    
+    def profile_dict(self):
+        return {
+            'name': self.name,
+            'description':self.description,
+            'highlight': self.highlight,
+            'image': self.image,
+            'tools': [tool.profile_dict() for tool in self.tools]
+        }
 
 
 class Tool(db.Model):
@@ -66,6 +83,11 @@ class Tool(db.Model):
             'id': self.id,
             'name': self.name
         }
+    
+    def profile_dict(self):
+        return {
+            'name': self.name
+        }
 
 
 class ExperienceBullet(db.Model):
@@ -74,10 +96,15 @@ class ExperienceBullet(db.Model):
     experience_id = db.Column(db.Integer, db.ForeignKey('experience.id'), nullable=False)
 
     def to_dict(self):
-        return{
+        return {
             'id' : self.id,
             'bullet_point' : self.bullet_point,
             'experience_id' : self.experience_id
+        }
+    
+    def profile_dict(self):
+        return {
+            'bullet_point' : self.bullet_point
         }
 
 
@@ -100,6 +127,15 @@ class Experience(db.Model):
             'user_id' : self.user_id,
             'bullet_points': [bullet.to_dict() for bullet in self.bullet_points]
         }
+    
+    def profile_dict(self):
+        return {
+            'organization': self.organization,
+            'role': self.role,
+            'start_date' : self.start_date,
+            'end_date' : self.end_date,
+            'bullet_points': [bullet.profile_dict() for bullet in self.bullet_points]
+        }
 
 
 class Location(db.Model):
@@ -112,6 +148,13 @@ class Location(db.Model):
     def to_dict(self):
         return{
             'id': self.id,
+            'city': self.city,
+            'state': self.state,
+            'country': self.country
+        }
+    
+    def profile_dict(self):
+        return{
             'city': self.city,
             'state': self.state,
             'country': self.country
@@ -130,6 +173,12 @@ class SocialLink(db.Model):
             'link_type': self.link_type,
             'link_value': self.link_value,
             'portfolio_id': self.portfolio_id
+        }
+    
+    def profile_dict(self):
+        return {
+            'link_type': self.link_type,
+            'link_value': self.link_value
         }
 
 
@@ -155,6 +204,14 @@ class Portfolio(db.Model):
             'user_id': self.user_id,
             'profile_pic': self.profile_pic,
             'social_links': [social_link.to_dict() for social_link in self.social_links]
+        }
+    
+    def profile_dict(self):
+        return {
+            'role': self.role,
+            'resume': self.resume,
+            'profile_pic': self.profile_pic,
+            'social_links': [social_link.profile_dict() for social_link in self.social_links]
         }
 
 
@@ -200,6 +257,23 @@ class User(UserMixin, db.Model):
             'client_testimonials': [testimonial.to_dict() for testimonial in self.testimonials],
             'contact_section': contact_section
         }
+    
+    def profile_dict(self):
+        portfolio = self.portfolio.profile_dict() if self.portfolio else None
+        about_section = self.about_section.profile_dict() if self.about_section else None
+        services_section = self.services_section.profile_dict() if self.services_section else None
+        contact_section = self.contact_section.profile_dict() if self.contact_section else None
+
+        return {
+            'username': self.username,
+            'portfolio': portfolio,
+            'projects': [project.profile_dict() for project in self.projects],
+            'experiences': [experience.profile_dict() for experience in self.experiences],
+            'about_section': about_section,
+            'services_section': services_section,
+            'client_testimonials': [testimonial.profile_dict() for testimonial in self.testimonials],
+            'contact_section': contact_section
+        }
 
 
 class AboutSection(db.Model):
@@ -221,6 +295,15 @@ class AboutSection(db.Model):
             'user_id': self.user_id,
             'tools': [tool.to_dict() for tool in self.tools]
         }
+    
+    def profile_dict(self):
+        return {
+            'paragraph1': self.paragraph1,
+            'skills_intro': self.skills_intro,
+            'paragraph2': self.paragraph2,
+            'picture': self.picture,
+            'tools': [tool.profile_dict() for tool in self.tools]
+        }
 
 
 class Service(db.Model):
@@ -239,6 +322,13 @@ class Service(db.Model):
             'image': self.image,
             'services_section_id': self.services_section_id
         }
+    
+    def profile_dict(self):
+        return {
+            'name': self.name,
+            'description': self.description,
+            'image': self.image
+        }
 
 
 class ServicesSection(db.Model):
@@ -253,6 +343,12 @@ class ServicesSection(db.Model):
             'intro_text': self.intro_text,
             'user_id': self.user_id,
             'services': [service.to_dict() for service in self.services]
+        }
+    
+    def profile_dict(self):
+        return {
+            'intro_text': self.intro_text,
+            'services': [service.profile_dict() for service in self.services]
         }
     
 
@@ -272,6 +368,14 @@ class ContactSection(db.Model):
             'contact_email': self.contact_email,
             'user_id': self.user_id,
             'location': self.location.to_dict() if self.location else None
+        }
+    
+    def profile_dict(self):
+        return {
+            'intro_text': self.intro_text,
+            'phone_number': self.phone_number,
+            'contact_email': self.contact_email,
+            'location': self.location.profile_dict() if self.location else None
         }
 
 

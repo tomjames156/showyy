@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { inter } from '@/app/ui/fonts'
-import { AuthProvider } from "@/context/AuthContext";
+import { ProfileContextProvider } from "@/context/ProfileContext";
 
 export const metadata: Metadata = {
   title: "Tomi's Portfolio",
@@ -24,9 +24,9 @@ export default function RootLayout({
       <body
         className={`${inter.className} antialiased dark:bg-black dark:text`}
       >
-        <AuthProvider>
+        <ProfileContextProvider>
           {children}
-        </AuthProvider>
+        </ProfileContextProvider>
       </body>
     </html>
   );

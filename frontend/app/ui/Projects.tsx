@@ -1,13 +1,15 @@
 "use client"
 
 import { libre_franklin } from './fonts'
-import { useState } from 'react'
+import { useContext, useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import gitLogoBlue from "../../public/git-blue.png"
 import earthBlue from "../../public/earth-blue.png"
 import { projectsSlides, projectTiles } from '../lib/placeholder-data'
 import Image from 'next/image'
+import { Project } from '../lib/definitions'
+import { ProfileContext } from '@/context/ProfileContext'
 
 const container = {
     initial: { opacity: 1, scale: 0},
@@ -31,6 +33,19 @@ const item  = {
 
 
 export default function Projects(){
+
+    const { profile } = useContext(ProfileContext) 
+    
+    console.log(profile.projects)
+
+    const highlights = []
+    for(let project in profile.projects){
+        if (project.highlight){
+            highlights.push(project)
+        }
+    }
+
+    console.log(highlights)
 
     const [activeIndex, setActiveIndex] = useState(0)
 

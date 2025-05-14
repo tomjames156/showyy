@@ -75,7 +75,7 @@ def start(current_user):
 @views.route('/profile/<string:username>/', methods=['GET'])
 def get_user_profile(username):
     profile = User.query.filter_by(username=username).one_or_404()
-    return jsonify(profile.to_dict())
+    return jsonify(profile.profile_dict())
 
 
 @views.route("/users/", methods=['GET'])

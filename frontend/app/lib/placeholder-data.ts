@@ -1,4 +1,4 @@
-import { WorkExperience, ProjectSlide, ProjectTile, Service, ClientTestimonial } from './definitions'
+import { WorkExperience, ProjectSlide, ProjectTile, ClientTestimonial, UserData, Experience, AboutSection, Tool, ContactSection, Location, Service, ServicesSection, Portfolio, SocialLink, BulletPoint, Project } from './definitions'
 
 export const workExperiences: WorkExperience[] = [
     {
@@ -118,31 +118,137 @@ export const projectTiles: ProjectTile[] = [
 
 export const services: Service[] = [
     {
-        service_id: 1,
         name: "Cloud Engineering",
         description: "Encompassing tasks like cloud migration, architecture, security and optimization while also ensuring data accessibility, security, and efficient processing.",
         image: "cloud.png"
     },
     {
-        service_id: 2,
         name: "Cloud Engineering",
         description: "Encompassing tasks like cloud migration, architecture, security and optimization while also ensuring data accessibility, security, and efficient processing.",
         image: "cloud.png"
     },
     {
-        service_id: 3,
         name: "Cloud Engineering",
         description: "Encompassing tasks like cloud migration, architecture, security and optimization while also ensuring data accessibility, security, and efficient processing.",
         image: "cloud.png"
     }
 ]
 
-export const clientTestimonials: ClientTestimonial[] = [
+export const userTestimonials: ClientTestimonial[] = [
     {
-        testimonial_id : 1, 
         name: "Eze Josh",
         organization: "Tourify",
         testimonial: "Lorem ipsum dolor sit amet consectetur. Viverra odio orci tellus ornare blandit. Eros nisl vulputate suscipit. Proin commodo dui ultricies senectus aliquam.",
         image: "profile_user.png"
     }
 ]
+
+const my_tools : Tool[] = [
+    {"name": "React"},
+    {"name": "Python"},
+    {"name": "Django"}
+]
+
+const about_me : AboutSection = {
+    "paragraph1": "I'm Tomi",
+    "paragraph2": null,
+    "picture": null,
+    "skills_intro": "These are some things I'm good at",
+    "tools": my_tools
+}
+
+const my_location: Location = {
+    "city": "Times Square",
+    "country": "U.S.A",
+    "state": "New York"
+}
+
+const contact_me: ContactSection = {
+    "contact_email": "tomjames156@gmail.com",
+    "intro_text": "You can contact me about it",
+    "location": my_location,
+    "phone_number": "08125887094"
+}
+
+const my_projects: Project[] = [
+    {
+        "description": "Tourism web app",
+        "highlight": true,
+        "image": "770520bab6f8d8b4ae1df0e36d35f68e.jpeg",
+        "name": "Tourify",
+        "tools": []
+    },
+    {
+        "description": "Freelance portfolio showcase",
+        "highlight": false,
+        "image": null,
+        "name": "Freelancr",
+        "tools": [
+            {
+                "name": "ReactJS"
+            },
+            {
+                "name": "Flask"
+            },
+            {
+                "name": "NextJS"
+            }
+        ]
+    }
+]
+
+const my_services: Service[] = [
+    {
+        "description": "Implementing user interfaces from designs",
+        "image": null,
+        "name": "Frontend Development"
+    }
+]
+
+const my_services_sect: ServicesSection = {
+    "intro_text": null,
+    "services": my_services
+}
+
+const my_points : BulletPoint[] = [
+    {
+        bullet_point: "Made several projects"
+    },{
+        bullet_point: "Met new people"
+    }
+]
+
+const my_experience : Experience = {
+    end_date: "Wed, 10 Jun 2026 00:00:00 GMT",
+    organization: "Nile University of Nigeria",
+    role: "Software Engineering Student",
+    start_date: "Tue, 20 Sep 2022 00:00:00 GMT",
+    bullet_points: my_points
+}
+
+const my_links : SocialLink[] = [
+    {
+        "link_type": "GitHub",
+        "link_value": "www.github.com/tomjames156"
+    }
+]
+
+const my_portfolio : Portfolio = {
+    "profile_pic": null,
+    "resume": null,
+    "role": "Freelancer",
+    "social_links": my_links
+}
+
+// const about_me : AboutSection = {}
+
+export const defaultData: UserData ={
+    username: "tom1sin",
+    experiences: my_experience,
+    about_section: about_me,
+    client_testimonials: userTestimonials,
+    contact_section: contact_me,
+    portfolio: my_portfolio,
+    projects: my_projects,
+    services_section: my_services_sect
+}
