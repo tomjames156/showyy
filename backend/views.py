@@ -72,10 +72,14 @@ def start(current_user):
     return render_template('home.html', user=user)
 
 
+def get_date_string(date):
+    return date.strftime("%B %Y")
+
+
 @views.route('/profile/<string:username>/', methods=['GET'])
 def get_user_profile(username):
     profile = User.query.filter_by(username=username).one_or_404()
-    return render_template('portfolio.html', profile=profile.profile_dict())
+    return render_template('portfolio.html', profile=profile.profile_dict(), get_date_string=get_date_string)
 
 
 @views.route("/users/", methods=['GET'])
