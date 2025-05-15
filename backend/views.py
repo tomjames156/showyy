@@ -87,7 +87,6 @@ def get_user_profile_data(username):
     profile = User.query.filter_by(username=username).one_or_404()
     return jsonify(profile.profile_dict())
 
-
 @views.route("/users/", methods=['GET'])
 @token_required
 def get_users(current_user):
