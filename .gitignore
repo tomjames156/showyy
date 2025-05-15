@@ -3,7 +3,6 @@ show_venv/
 *.env
 database.db
 folio-backup.db
-static
 .DS_Store
 .idea/
 __pycache__/
