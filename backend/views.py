@@ -82,6 +82,12 @@ def get_user_profile(username):
     return render_template('portfolio.html', profile=profile.profile_dict(), get_date_string=get_date_string)
 
 
+@views.route('/profile_data/<string:username>/', methods=['GET'])
+def get_user_profile_data(username):
+    profile = User.query.filter_by(username=username).one_or_404()
+    return jsonify(profile.profile_dict())
+
+
 @views.route("/users/", methods=['GET'])
 @token_required
 def get_users(current_user):

@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { UserData } from '@/app/lib/definitions';
 
 interface AppContextProps {
@@ -13,15 +14,17 @@ interface AppContextProps {
 export const ProfileContext = createContext<AppContextProps | undefined>(undefined);
 
 export function ProfileContextProvider({ children }: { children: React.ReactNode }) {
+  const searchParams = useSearchParams()
   const [profile, setProfile] = useState<UserData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const username = searchParams.get("username")
 
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         // Replace with your actual API endpoint
-        const response = await fetch(`https://showyy.onrender.com/profile/tom1/`);
+        const response = await fetch(`http://127.0.0.1:5000/profile_data/tom1/`);
         if (!response.ok) {
           throw new Error(`Failed to fetch profile: ${response.status}`);
         }
@@ -34,7 +37,12 @@ export function ProfileContextProvider({ children }: { children: React.ReactNode
       }
     };
 
-  }, []);
+    if (username) {
+      fetchProfile();
+    } else {
+       setLoading(false); // Set loading to false if no username
+    }
+  }, [username]);;
 
   const contextValue = {
     profile,
