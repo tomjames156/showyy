@@ -3,6 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from sqlalchemy import MetaData
 from dotenv import load_dotenv
+from flask_jwt_extended import JWTManager
+from flask_cors import CORS
 import os
 
 load_dotenv()
@@ -25,6 +27,8 @@ migrate = Migrate()
 def create_app():
     app = Flask(__name__)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+    JWTManager(app)
+    CORS(app, origins="*")
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_NAME}'
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     # app.config['SQLALCHEMY_ECHO'] = True

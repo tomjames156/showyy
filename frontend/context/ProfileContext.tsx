@@ -3,6 +3,7 @@
 import React, { createContext, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { UserData } from '@/app/lib/definitions';
+import { head } from 'framer-motion/client';
 
 interface AppContextProps {
   profile: UserData | null;
@@ -22,9 +23,14 @@ export function ProfileContextProvider({ children }: { children: React.ReactNode
 
   useEffect(() => {
     const fetchProfile = async () => {
+
       try {
         // Replace with your actual API endpoint
-        const response = await fetch(`http://127.0.0.1:5000/profile_data/tom1/`);
+        const response = await fetch(`https://showyy.onrender.com/portfolios/`, {
+          method: 'POST',
+          headers: {
+          }
+        });
         if (!response.ok) {
           throw new Error(`Failed to fetch profile: ${response.status}`);
         }

@@ -1,7 +1,6 @@
 import datetime
-from flask import (Blueprint, abort, current_app, request, flash, get_flashed_messages, jsonify,
+from flask import (Blueprint, abort, current_app, request, jsonify,
                    request, render_template, make_response)
-from flask_restful import Resource, marshal_with
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.exceptions import HTTPException
 import json
@@ -11,6 +10,7 @@ from functools import wraps
 from . import db
 from .models import *
 from sqlalchemy import text
+from flask_jwt_extended import (create_access_token)
 
 auth = Blueprint('auth', __name__)
 
@@ -43,7 +43,6 @@ def token_required(f):
 
         if not token:
             abort(401, "Token is missing")
-
         try:
             data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
             current_user = User.query.filter_by(public_id=data['public_id']).first()
@@ -53,6 +52,7 @@ def token_required(f):
         return f(current_user=current_user, *args, **kwargs)
 
     return decorated
+
 
 
 def check_username_exists(username):
@@ -162,6 +162,8 @@ def login_user():
 
                 db.session.commit()
 
+                access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=30))
+                return jsonify(access_token=access_token)
 
                 token = jwt.encode({'public_id': user.public_id, 'exp': datetime.datetime.now(
                     datetime.timezone.utc) + datetime.timedelta(days=30)}, current_app.config[

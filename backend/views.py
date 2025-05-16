@@ -4,6 +4,7 @@ from flask import (Blueprint, abort, current_app, request, jsonify, render_templ
 from flask_restful import Resource, marshal_with
 from werkzeug.utils import secure_filename
 from werkzeug.exceptions import HTTPException
+from flask_jwt_extended import jwt_required
 import json
 from sqlalchemy import text
 from .models import *
@@ -11,6 +12,7 @@ from .utils import get_file_extension
 from hashlib import md5
 from time import localtime
 from . import db
+import jwt
 from .auth import token_required
 
 
@@ -64,6 +66,30 @@ def new_filename():
     return f"{prefix}"
 
 
+def get_current_user():
+    token = request.headers.get("Authorization")
+
+    if not token:
+        abort(401, "Token is missing")
+    try:
+        token = token[7:]
+        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+        current_user = User.query.filter_by(username=data['sub']).first()
+    except Exception as e:
+        abort(401, "Token is Invalid")
+    
+    return current_user
+
+
+
+@views.route("/grid")
+@jwt_required()
+def begin():
+    current_user = get_current_user()
+
+    return current_user.profile_dict()
+
+
 @views.route("/")
 @token_required
 def start(current_user):
@@ -87,9 +113,11 @@ def get_user_profile_data(username):
     profile = User.query.filter_by(username=username).one_or_404()
     return jsonify(profile.profile_dict())
 
-@views.route("/users/", methods=['GET'])
-@token_required
-def get_users(current_user):
+@views.route("/users/", methods=['POST'])
+@jwt_required()
+def get_users():
+
+    current_user = get_current_user()
 
     if current_user.id == 1:
         users = [user.to_dict() for user in User.query.all()]
@@ -124,32 +152,33 @@ def get_update_user(user_id, current_user):
 
 
 @views.route("/portfolios/", methods=['GET', 'POST'])
-@token_required
-def get_create_portfolios(current_user):
+@jwt_required()
+def get_create_portfolios():
     if request.method == 'GET':
-        if current_user.id == 1:
-            portfolios = [portfolio.to_dict() for portfolio in Portfolio.query.all()]
-            return jsonify(portfolios)
-        else:
-            abort(401, "Access Denied")
-    elif request.method == 'POST':
-        create_fields = request.json
-        create_fields['user_id'] = current_user.id
+        portfolios = [portfolio.to_dict() for portfolio in Portfolio.query.all()]
+        return jsonify(portfolios)
+        # if current_user.id == 1:
+            
+        # else:
+        #     abort(401, "Access Denied")
+    # elif request.method == 'POST':
+    #     create_fields = request.json
+    #     create_fields['user_id'] = current_user.id
 
-        if check_user_id_exists_in_table('portfolio', create_fields['user_id']):
-            abort(409, description="Portfolio already exists for this user")
+    #     if check_user_id_exists_in_table('portfolio', create_fields['user_id']):
+    #         abort(409, description="Portfolio already exists for this user")
 
-        portfolio = Portfolio()
+    #     portfolio = Portfolio()
 
-        for key, value in create_fields.items():
-            if value is not None and key in ['role', 'user_id', 'location_id']:
-                setattr(portfolio, key, value)
+    #     for key, value in create_fields.items():
+    #         if value is not None and key in ['role', 'user_id', 'location_id']:
+    #             setattr(portfolio, key, value)
 
-        db.session.add(portfolio)
-        db.session.commit()
+    #     db.session.add(portfolio)
+    #     db.session.commit()
 
-        response = make_response(jsonify({"message": "Created New Portfolio"}))
-        return response, 200
+    #     response = make_response(jsonify({"message": "Created New Portfolio"}))
+    #     return response, 200
 
 
 @views.route('portfolios/<int:portfolio_id>/', methods=["GET", "PUT"])
