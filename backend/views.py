@@ -12,8 +12,7 @@ from .utils import get_file_extension
 from hashlib import md5
 from time import localtime
 from . import db
-import jwt
-from .auth import token_required
+from .auth import get_current_user
 
 
 UPLOAD_FOLDER = '/files/'
@@ -66,36 +65,12 @@ def new_filename():
     return f"{prefix}"
 
 
-def get_current_user():
-    token = request.headers.get("Authorization")
-
-    if not token:
-        abort(401, "Token is missing")
-    try:
-        token = token[7:]
-        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-        current_user = User.query.filter_by(username=data['sub']).first()
-    except Exception as e:
-        abort(401, "Token is Invalid")
-    
-    return current_user
-
-
-
 @views.route("/grid")
 @jwt_required()
 def begin():
     current_user = get_current_user()
 
     return current_user.profile_dict()
-
-
-@views.route("/")
-@token_required
-def start(current_user):
-    user = User.query.filter_by(username=current_user.username).first()
-
-    return render_template('home.html', user=user)
 
 
 def get_date_string(date):
@@ -113,7 +88,7 @@ def get_user_profile_data(username):
     profile = User.query.filter_by(username=username).one_or_404()
     return jsonify(profile.profile_dict())
 
-@views.route("/users/", methods=['POST'])
+@views.route("/users/", methods=['GET'])
 @jwt_required()
 def get_users():
 
@@ -127,8 +102,9 @@ def get_users():
 
 
 @views.route("/users/<int:user_id>/", methods=['GET', 'PUT'])
-@token_required
-def get_update_user(user_id, current_user):
+@jwt_required()
+def get_update_user(user_id):
+    current_user = get_current_user()
     user = User.query.get_or_404(user_id)
 
     if request.method == "GET":
@@ -154,36 +130,37 @@ def get_update_user(user_id, current_user):
 @views.route("/portfolios/", methods=['GET', 'POST'])
 @jwt_required()
 def get_create_portfolios():
+    current_user = get_current_user()
     if request.method == 'GET':
-        portfolios = [portfolio.to_dict() for portfolio in Portfolio.query.all()]
-        return jsonify(portfolios)
-        # if current_user.id == 1:
-            
-        # else:
-        #     abort(401, "Access Denied")
-    # elif request.method == 'POST':
-    #     create_fields = request.json
-    #     create_fields['user_id'] = current_user.id
+        if current_user.id == 1:
+            portfolios = [portfolio.to_dict() for portfolio in Portfolio.query.all()]
+            return jsonify(portfolios)
+        else:
+            abort(401, "Access Denied")
+    elif request.method == 'POST':
+        create_fields = request.json
+        create_fields['user_id'] = current_user.id
 
-    #     if check_user_id_exists_in_table('portfolio', create_fields['user_id']):
-    #         abort(409, description="Portfolio already exists for this user")
+        if check_user_id_exists_in_table('portfolio', create_fields['user_id']):
+            abort(409, description="Portfolio already exists for this user")
 
-    #     portfolio = Portfolio()
+        portfolio = Portfolio()
 
-    #     for key, value in create_fields.items():
-    #         if value is not None and key in ['role', 'user_id', 'location_id']:
-    #             setattr(portfolio, key, value)
+        for key, value in create_fields.items():
+            if value is not None and key in ['role', 'user_id', 'location_id']:
+                setattr(portfolio, key, value)
 
-    #     db.session.add(portfolio)
-    #     db.session.commit()
+        db.session.add(portfolio)
+        db.session.commit()
 
-    #     response = make_response(jsonify({"message": "Created New Portfolio"}))
-    #     return response, 200
+        response = make_response(jsonify({"message": "Created New Portfolio"}))
+        return response, 200
 
 
 @views.route('portfolios/<int:portfolio_id>/', methods=["GET", "PUT"])
-@token_required
-def get_update_portfolio(portfolio_id, current_user):
+@jwt_required()
+def get_update_portfolio(portfolio_id):
+    current_user = get_current_user()
     portfolio = Portfolio.query.get_or_404(portfolio_id)
 
     if request.method == "GET":
@@ -210,8 +187,9 @@ def get_update_portfolio(portfolio_id, current_user):
 
 
 @views.route('user/profile_pic/', methods=['GET', 'POST'])
-@token_required
-def update_profile_pic(current_user):
+@jwt_required()
+def update_profile_pic():
+    current_user = get_current_user()
     user = User.query.filter_by(username=current_user.username).first()
 
     if request.method == 'POST':
@@ -253,8 +231,9 @@ def update_profile_pic(current_user):
 
 
 @views.route('user/resume/', methods=['GET', 'POST'])
-@token_required
-def update_resume(current_user):
+@jwt_required()
+def update_resume():
+    current_user = get_current_user()
     user = User.query.filter_by(username=current_user.username).first()
 
     if request.method == 'POST':
@@ -296,8 +275,9 @@ def update_resume(current_user):
 
 
 @views.route("/social_links/", methods=['GET', 'POST'])
-@token_required
-def create_get_social_links(current_user):
+@jwt_required()
+def create_get_social_links():
+    current_user = get_current_user()
     if not current_user.portfolio:
         abort(401, "Access Denied")
 
@@ -327,8 +307,9 @@ def create_get_social_links(current_user):
 
 
 @views.route("/social_links/<int:social_link_id>/", methods=['GET', "PUT", "DELETE"])
-@token_required
-def get_update_social_links(social_link_id, current_user):
+@jwt_required()
+def get_update_social_links(social_link_id):
+    current_user = get_current_user()
     social_link = SocialLink.query.get_or_404(social_link_id)
 
     # Authenticated User doesnt have a portfolio
@@ -367,8 +348,9 @@ def get_update_social_links(social_link_id, current_user):
 
 
 @views.route('/about_sections/', methods=['GET', 'POST'])
-@token_required
-def get_create_about_section(current_user):
+@jwt_required()
+def get_create_about_section():
+    current_user = get_current_user()
     user = User.query.get_or_404(current_user.id)
 
     if request.method == "GET":
@@ -411,8 +393,9 @@ def get_create_about_section(current_user):
 
 
 @views.route('/about_sections/<int:about_id>/', methods=['GET', 'PUT'])
-@token_required
-def get_update_about_section(about_id, current_user):
+@jwt_required()
+def get_update_about_section(about_id):
+    current_user = get_current_user()
     about_section = AboutSection.query.get_or_404(about_id)
 
     if request.method == 'GET':
@@ -451,8 +434,9 @@ def get_update_about_section(about_id, current_user):
 
 
 @views.route("/experiences/", methods=['GET', 'POST'])
-@token_required
-def get_create_experiences(current_user):
+@jwt_required()
+def get_create_experiences():
+    current_user = get_current_user()
     if request.method == "GET":
 
         if current_user.id != 1:
@@ -499,8 +483,9 @@ def get_create_experiences(current_user):
 
 
 @views.route('/experiences/<int:experience_id>/', methods=['GET', 'PUT'])
-@token_required
-def get_update_experience(experience_id, current_user):
+@jwt_required()
+def get_update_experience(experience_id):
+    current_user = get_current_user()
     experience = Experience.query.get_or_404(experience_id)
     if request.method == 'GET':
 
@@ -549,8 +534,9 @@ def get_update_experience(experience_id, current_user):
 
 
 @views.route("/experience_bullets/", methods=['GET', 'POST'])
-@token_required
-def get_create_experience_bullets(current_user):
+@jwt_required()
+def get_create_experience_bullets():
+    current_user = get_current_user()
     if request.method == "GET":
         if current_user.id != 1:
             abort(401, "Access Denied")
@@ -574,8 +560,9 @@ def get_create_experience_bullets(current_user):
 
 
 @views.route('/experience_bullets/<int:bullet_point_id>/', methods=['GET', 'PUT'])
-@token_required
-def get_update_experience_bullets(bullet_point_id, current_user):
+@jwt_required()
+def get_update_experience_bullets(bullet_point_id):
+    current_user = get_current_user()
     bullet_point = ExperienceBullet.query.get_or_404(bullet_point_id)
 
     if request.method == 'GET':
@@ -599,8 +586,9 @@ def get_update_experience_bullets(bullet_point_id, current_user):
 
 
 @views.route("/services/", methods=['GET', 'POST'])
-@token_required
-def get_create_services(current_user):
+@jwt_required()
+def get_create_services():
+    current_user = get_current_user()
     if request.method == 'GET':
         
         if current_user.id != 1:
@@ -627,8 +615,9 @@ def get_create_services(current_user):
 
 
 @views.route("/services/<int:service_id>", methods=['GET', 'PUT'])
-@token_required
-def get_update_service(service_id, current_user):
+@jwt_required()
+def get_update_service(service_id):
+    current_user = get_current_user()
     service = Service.query.get_or_404(service_id)
     if request.method == "GET":
         
@@ -656,8 +645,9 @@ def get_update_service(service_id, current_user):
 
 
 @views.route("/services/<int:service_id>/pic/", methods=['GET', 'POST'])
-@token_required
-def get_update_service_img(service_id, current_user):
+@jwt_required()
+def get_update_service_img(service_id):
+    current_user = get_current_user()
     service = Service.query.get_or_404(service_id)
     user = User.query.filter_by(username=current_user.username).first()
 
@@ -707,8 +697,9 @@ def get_update_service_img(service_id, current_user):
 
 
 @views.route("/services/names/", methods=['GET'])
-@token_required
-def get_service_names(current_user):
+@jwt_required()
+def get_service_names():
+    current_user = get_current_user()
     query = text(f"""
                 SELECT DISTINCT (name)
                 FROM service
@@ -725,8 +716,9 @@ def get_service_names(current_user):
 
 
 @views.route("/services_sections/", methods=['GET', 'POST'])
-@token_required
-def get_create_services_sections(current_user):
+@jwt_required()
+def get_create_services_sections():
+    current_user = get_current_user()
     if request.method == 'GET':
         if current_user.id != 1:
             abort(401, "Access Denied")
@@ -765,8 +757,9 @@ def get_create_services_sections(current_user):
 
 
 @views.route("/services_sections/<int:service_section_id>/", methods=['GET', 'PUT'])
-@token_required
-def get_update_services_sections(service_section_id, current_user):
+@jwt_required()
+def get_update_services_sections(service_section_id):
+    current_user = get_current_user()
     services_section = ServicesSection.query.get_or_404(service_section_id)
     if request.method == 'GET':
         if current_user.services_section.user_id != services_section.user_id and current_user.id != 1:
@@ -799,8 +792,9 @@ def get_update_services_sections(service_section_id, current_user):
 
 
 @views.route("/projects/", methods=['GET', 'POST'])
-@token_required
-def get_create_projects(current_user):
+@jwt_required()
+def get_create_projects():
+    current_user = get_current_user()
     if request.method == "GET":
 
         if current_user.id != 1:
@@ -835,8 +829,9 @@ def get_create_projects(current_user):
 
 
 @views.route('/projects/<int:project_id>/', methods=['GET', 'PUT'])
-@token_required
-def get_update_project(project_id, current_user):
+@jwt_required()
+def get_update_project(project_id):
+    current_user = get_current_user()
     project = Project.query.get_or_404(project_id)
     if request.method == 'GET':
 
@@ -874,8 +869,9 @@ def get_update_project(project_id, current_user):
     
 
 @views.route('projects/<int:project_id>/image', methods=['GET', 'POST'])
-@token_required
-def update_project_image(project_id, current_user):
+@jwt_required()
+def update_project_image(project_id):
+    current_user = get_current_user()
     project = Project.query.get_or_404(project_id)
 
     if project.user_id != current_user.id and current_user.id != 1:
@@ -916,8 +912,8 @@ def update_project_image(project_id, current_user):
 
 
 @views.route("/tools/", methods=['GET', 'POST'])
-@token_required
-def get_create_tools(current_user):
+@jwt_required()
+def get_create_tools():
     if request.method == 'GET':
 
         tools = [tool.to_dict() for tool in Tool.query.all()]
@@ -938,8 +934,8 @@ def get_create_tools(current_user):
 
 
 @views.route("/tools/search/", methods=['GET'])
-@token_required
-def find_tool(current_user):
+@jwt_required()
+def find_tool():
     tool_string = request.args.get('tool_string')
 
     query = text(f"""
@@ -959,8 +955,8 @@ def find_tool(current_user):
 
 
 @views.route('locations/', methods=['GET', 'POST'])
-@token_required
-def get_add_locations(current_user):
+@jwt_required()
+def get_add_locations():
     if request.method == "GET":
         locations = [location.to_dict() for location in Location.query.all()]
 
@@ -987,16 +983,16 @@ def get_add_locations(current_user):
 
 
 @views.route('locations/<int:location_id>/', methods=["GET"])
-@token_required
-def get_location(location_id, current_user):
+@jwt_required()
+def get_location(location_id):
     location = Location.query.get_or_404(location_id)
     if request.method == "GET":
         return jsonify(location.to_dict())
 
 
 @views.route("/locations/search/", methods=['POST'])
-@token_required
-def find_location(current_user):
+@jwt_required()
+def find_location():
     """
     Finds locations based on city, state, and/or country.
     Requires a POST request with JSON data.
@@ -1045,8 +1041,9 @@ def find_location(current_user):
 
 
 @views.route("/client_testimonials/", methods=['GET', 'POST'])
-@token_required
-def get_create_testimonials(current_user):
+@jwt_required()
+def get_create_testimonials():
+    current_user = get_current_user()
     if request.method == 'GET':
         if current_user.id != 1:
             abort(401, "Access Denied")
@@ -1067,8 +1064,9 @@ def get_create_testimonials(current_user):
 
 
 @views.route("/client_testimonials/<int:testimonial_id>/", methods=['GET', 'PUT'])
-@token_required
-def get_update_client_testimonial(testimonial_id, current_user):
+@jwt_required()
+def get_update_client_testimonial(testimonial_id):
+    current_user = get_current_user()
     testimonial = ClientTestimonial.query.get_or_404(testimonial_id)
 
     if request.method == 'GET':
@@ -1095,10 +1093,10 @@ def get_update_client_testimonial(testimonial_id, current_user):
 
 
 @views.route("/client_testimonials/<int:testimonial_id>/pic/", methods=['GET', 'POST'])
-@token_required
-def get_update_client_image(testimonial_id, current_user):
+@jwt_required()
+def get_update_client_image(testimonial_id):
+    current_user = get_current_user()
     testimonial = ClientTestimonial.query.get_or_404(testimonial_id)
-    user = User.query.filter_by(username=current_user.username).first()
 
     if testimonial.user_id != current_user.id and current_user.id != 1:
         abort(401, "Access Denied")
@@ -1142,8 +1140,9 @@ def get_update_client_image(testimonial_id, current_user):
 
 
 @views.route("/contact_sections/", methods=['GET', 'POST'])
-@token_required
-def get_create_contact_sections(current_user):
+@jwt_required()
+def get_create_contact_sections():
+    current_user = get_current_user()
     
     if request.method == 'GET':
         if current_user.id != 1:
@@ -1170,8 +1169,9 @@ def get_create_contact_sections(current_user):
 
 
 @views.route("/contact_sections/<int:contact_sect_id>/", methods=['GET', 'PUT'])
-@token_required
-def get_update_contact_section(contact_sect_id, current_user):
+@jwt_required()
+def get_update_contact_section(contact_sect_id):
+    current_user = get_current_user()
     contact_section = ContactSection.query.get_or_404(contact_sect_id)
 
     if request.method == "GET":

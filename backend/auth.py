@@ -6,11 +6,10 @@ from werkzeug.exceptions import HTTPException
 import json
 import jwt
 import uuid
-from functools import wraps
 from . import db
 from .models import *
 from sqlalchemy import text
-from flask_jwt_extended import (create_access_token)
+from flask_jwt_extended import (create_access_token, jwt_required)
 
 auth = Blueprint('auth', __name__)
 
@@ -30,29 +29,19 @@ def handle_exception(e):
     return response
 
 
-def set_jwt_cookie(response, token):
+def get_current_user():
+    token = request.headers.get("Authorization")
 
-    response.set_cookie('jwt_token', token, httponly=True, secure=True, samesite='Lax') #Added
-    # secure
-
-
-def token_required(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = request.cookies.get('jwt_token')
-
-        if not token:
-            abort(401, "Token is missing")
-        try:
-            data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
-            current_user = User.query.filter_by(public_id=data['public_id']).first()
-        except Exception as e:
-            abort(401, "Token is Invalid")
-
-        return f(current_user=current_user, *args, **kwargs)
-
-    return decorated
-
+    if not token:
+        abort(401, "Token is missing")
+    try:
+        token = token[7:]
+        data = jwt.decode(token, current_app.config['SECRET_KEY'], algorithms=["HS256"])
+        current_user = User.query.filter_by(username=data['sub']).first()
+    except Exception as e:
+        abort(401, "Token is Invalid")
+    
+    return current_user
 
 
 def check_username_exists(username):
@@ -112,8 +101,9 @@ def signup_user():
 
 
 @auth.route('update_password/', methods=['PUT'])
-@token_required
-def update_password(current_user):
+@jwt_required()
+def update_password():
+    current_user = get_current_user()
     put_fields = request.json
     new_pass = put_fields['password']
 
@@ -162,16 +152,8 @@ def login_user():
 
                 db.session.commit()
 
-                access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=30))
+                access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=100))
                 return jsonify(access_token=access_token)
-
-                token = jwt.encode({'public_id': user.public_id, 'exp': datetime.datetime.now(
-                    datetime.timezone.utc) + datetime.timedelta(days=30)}, current_app.config[
-                    'SECRET_KEY'], algorithm='HS256')
-                
-                response = make_response(jsonify({"accessToken": token}))
-
-                return response, 200
             else:
                 abort(401, "Authentication Failed")
         else:
@@ -181,8 +163,9 @@ def login_user():
 
 
 @auth.route('verify/', methods=["POST"])
-@token_required
-def verify_email(current_user):
+@jwt_required()
+def verify_email():
+    current_user = get_current_user()
     user = User.query.get_or_404(current_user.id)
 
     user.verified = True
@@ -193,8 +176,9 @@ def verify_email(current_user):
 
 
 @auth.route('update_email/', methods=["POST"])
-@token_required
-def update_email(current_user):
+@jwt_required()
+def update_email():
+    current_user = get_current_user()
     user = User.query.get_or_404(current_user.id)
     new_email = request.form['email']
 
