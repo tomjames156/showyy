@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Content Management System</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <header class="bg-gray-800 text-white py-4 text-center">
+        <h1 class="text-2xl font-bold">Freelancr - Content Management System</h1>
+    </header>
+    <aside class="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col py-8 px-4 z-20">
+        <nav class="flex flex-col gap-4">
+            <div class="flex items-center gap-3 px-3 mb-2">
+                {% if profile.portfolio.profile_pic %}
+                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/' ~ 'default_usr.jpg') }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                {% endif %}
+                <span class="font-bold text-lg">{{ profile.username }}</span>
+            </div>
+            <a href="#about-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">About Section</a>
+            <a href="#contact-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Contact Section</a>
+            <a href="#projects-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Projects</a>
+            <a href="#services-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Services Section</a>
+        </nav>
+    </aside>
+    <style>
+        @media (min-width: 640px) {
+            main {
+                margin-left: 14rem;
+            }
+        }
+    </style>
+    <script>
+        // Smooth scroll for side nav
+        // Add scroll-padding-top to html for smooth scroll offset
+        document.documentElement.style.scrollPaddingTop = '1rem';
+
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+            });
+        });
+    </script>
+    <main class="px-10">
+        <div class="container mx-auto mt-6 flex justify-end">
+            <a href="./profile/edit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                Edit Profile
+            </a>
+        </div>
+        <div id="about-section" class="container mx-auto mt-8">
+            <h2 class="text-xl font-semibold mb-4">About Section</h2>
+            <form id="aboutForm" class="bg-white p-6 rounded shadow-md">
+                <label for="name" class="block text-gray-700 mb-2">Paragraph 1:</label>
+                {% if profile.about_section.paragraph1 %}
+                <input type="text" id="paragraph1" name="paragraph1"  class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.about_section.paragraph1 }}">
+                {% else %}
+                <input type="text" id="paragraph1" name="paragraph1"  class="border border-gray-300 p-2 w-full mb-4">
+                {% endif %}
+
+                <label for="name" class="block text-gray-700 mb-2">Paragraph 2:</label>
+                {% if profile.about_section.paragraph2 %}
+                <input type="text" id="paragraph2" name="paragraph2"  class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.about_section.paragraph2 }}">
+                {% else %}
+                <input type="text" id="paragraph2" name="paragraph2"  class="border border-gray-300 p-2 w-full mb-4">
+                {% endif %}
+
+                <label for="name" class="block text-gray-700 mb-2">Skills Intro:</label>
+                {% if profile.about_section.skills_intro %}
+                <input type="text" id="skills_intro" name="skills_intro"  class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.about_section.skills_intro }}">
+                {% else %}
+                <input type="text" id="skills_intro" name="skills_intro"  class="border border-gray-300 p-2 w-full mb-4">
+                {% endif %}
+                {% if profile.about_section.tools %}
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Current Tools:</label>
+                    <ul class="flex flex-wrap gap-2">
+                        {% for tool in profile.about_section.tools %}
+                            <li class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">{{ tool.name }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                <label for="tools" class="block text-gray-700 mb-2">Tools:</label>
+                <select id="tools" name="tools" multiple  class="border border-gray-300 p-2 w-full mb-4">
+                    {% for tool in tools %}
+                        <option value="{{ tool.id }}"
+                            {% if profile.about_section.tools and tool.id in profile.about_section.tools %}
+                                selected
+                            {% endif %}
+                        >{{ tool.name }}</option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update</button>
+                <div class="mb-4">
+                    <label for="new_tool" class="block text-gray-700 mt-4 mb-2">Add New Tool:</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="new_tool" name="name" placeholder="Tool name" class="border border-gray-300 p-2 w-40 rounded" />
+                        <button type="button" id="addToolBtn" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                            Add Tool
+                        </button>
+                    </div>
+                </div>
+                <script>
+                document.getElementById('addToolBtn').addEventListener('click', async function() {
+                    const toolName = document.getElementById('new_tool').value.trim();
+                    if (!toolName) {
+                        alert('Please enter a tool name.');
+                        return;
+                    }
+                    try {
+                        const formData = new FormData();
+                        formData.append('name', toolName);
+                        const res = await fetch('/tools', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                            },
+                            body: formData
+                        });
+                        if (res.ok) {
+                            location.reload();
+                        } else {
+                            const data = await res.json();
+                            alert(data.message || 'Failed to add tool.');
+                        }
+                    } catch (err) {
+                        alert('Error: ' + err.message);
+                    }
+                });
+                </script>
+            </form>
+
+            <div id="response1" class="mt-4"></div>
+        </div>
+
+        <div id="contact-section"class="container mx-auto mt-8">
+            
+            <h2 class="text-xl font-semibold mb-4">Contact Section</h2>
+            <form id="contactForm" class="bg-white p-6 rounded shadow-md">
+            <label for="intro_text" class="block text-gray-700 mb-2">Intro Text:</label>
+            {% if profile.contact_section.intro_text %}
+            <input type="text" id="intro_text" name="intro_text"  class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.contact_section.intro_text }}">
+            {% else %}
+            <input type="text" id="intro_text" name="intro_text"  class="border border-gray-300 p-2 w-full mb-4">
+            {% endif %}
+            <label for="phone_number" class="block text-gray-700 mb-2">Phone Number:</label>
+            {% if profile.contact_section.phone_number %}
+            <input type="text" id="phone_number" name="phone_number"  class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.contact_section.phone_number }}">
+            {% else %}
+            <input type="text" id="phone_number" name="phone_number"  class="border border-gray-300 p-2 w-full mb-4">
+            {% endif %}
+
+            <label for="contact_email" class="block text-gray-700 mb-2">Contact Email:</label>
+            {% if profile.contact_section.contact_email %}
+            <input type="text" id="contact_email" name="contact_email"  class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.contact_section.contact_email }}">
+            {% else %}
+            <input type="text" id="contact_email" name="contact_email"  class="border border-gray-300 p-2 w-full mb-4">
+            {% endif %}
+
+            <label for="location_id" class="block text-gray-700 mb-2">Location:</label>
+            {% if profile.about_section.skills_intro %}
+            <select id="location_id" name="location_id"  class="border border-gray-300 p-2 w-full mb-4">
+                {% for location in locations %}
+                    <option value="{{ location.id }}"
+                        {% if profile.contact_section.location and profile.contact_section.location.id == location.id %}
+                            selected
+                        {% endif %}
+                    >
+                        {{ location.city }}, {{location.state}}, {{ location.country }}
+                    </option>
+                {% endfor %}
+            </select>
+            {% else %}
+            <select id="location_id" name="location_id"  class="border border-gray-300 p-2 w-full mb-4">
+                {% for location in locations %}
+                    <option value="{{ location.id }}">{{ location.city }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button type="submit" id="updateContactBtn" class="bg-blue-500 text-white px-4 mb-4 py-2 rounded">Update</button>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Add New Location:</label>
+                <div class="flex flex-col md:flex-row gap-2">
+                    <input type="text" id="city" name="ncity" placeholder="City" class="border border-gray-300 p-2 w-full md:w-1/3" />
+                    <input type="text" id="state" name="state" placeholder="State" class="border border-gray-300 p-2 w-full md:w-1/3" />
+                    <input type="text" id="country" name="country" placeholder="Country" class="border border-gray-300 p-2 w-full md:w-1/3" />
+                </div>
+                <button type="button" id="addLocationBtn" class="mt-2 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                    Add New Location
+                </button>
+                <script>
+                document.getElementById('addLocationBtn').addEventListener('click', async function() {
+                    const city = document.getElementById('city').value.trim();
+                    const state = document.getElementById('state').value.trim();
+                    const country = document.getElementById('country').value.trim();
+                    if (!city || !state || !country) {
+                        alert('Please fill in all fields for the new location.');
+                        return;
+                    }
+                    const token = "{{ token }}";
+                    try {
+                        const formData = new FormData();
+                        formData.append('city', city);
+                        formData.append('state', state);
+                        formData.append('country', country);
+
+                        const res = await fetch('/locations', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': 'Bearer ' + token,
+                            },
+                            body: formData
+                        });
+                        if (res.ok) {
+                            location.reload();
+                        } else {
+                            const data = await res.json();
+                            alert(data.message || 'Failed to add location.');
+                        }
+                    } catch (err) {
+                        alert('Error: ' + err.message);
+                    }
+                });
+                </script>
+            </div>
+            </form>
+
+            <div id="response1" class="mt-4 hidden"></div>
+        </div>
+
+        <div id="projects-section" class="container mx-auto mt-8">
+            <h2 class="text-xl font-semibold mb-4">Projects</h2>
+            <form id="projectsForm" class="bg-white p-6 rounded shadow-md">
+            <label for="name" class="block text-gray-700 mb-2">Project Name</label>
+            <input type="text" id="name" name="name" class="border border-gray-300 p-2 w-full mb-4">
+            <label for="description" class="block text-gray-700 mb-2">Project Description</label>
+            <textarea id="description" name="description" class="border border-gray-300 p-2 w-full mb-4"></textarea>
+            <label for="project_image" class="block text-gray-700 mb-2">Project Image</label>
+            <input type="file" id="project_image" name="project_image" accept="image/*" class="border border-gray-300 p-2 w-full mb-4">
+            <label for="project_tools" class="block text-gray-700 mb-2">Project Tools</label>
+
+            <select id="project_tools" name="project_tools" multiple class="border border-gray-300 p-2 w-full mb-4">
+                {% for tool in tools %}
+                <option value="{{ tool.id }}">{{ tool.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Project</button>
+            {% if profile.projects %}
+                <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2">Your Projects:</h3>
+                <ul class="flex flex-wrap gap-3">
+                    {% for project in profile.projects %}
+                    <li class="bg-purple-100 text-purple-800 px-4 py-2 rounded-full shadow text-sm font-semibold">
+                        {{ project.name }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                </div>
+            {% else %}
+                <p class="mt-6 text-gray-500">No projects found.</p>
+            {% endif %}
+            </form>
+
+            <div id="response" class="mt-4"></div>
+        </div>
+
+        <div id="services-section" class="container mx-auto mt-8">
+            <h2 class="text-xl font-semibold mb-4">Services Section</h2>
+            <form id="servicesForm" class="bg-white p-6 rounded shadow-md">
+            <label for="intro_text" class="block text-gray-700 mb-2">Intro Text:</label>
+            {% if profile.services_section.intro_text %}
+            <input type="text" id="intro_text" name="intro_text" class="border border-gray-300 p-2 w-full mb-4" value="{{ profile.services_section.intro_text }}">
+            {% else %}
+            <input type="text" id="intro_text" name="intro_text" class="border border-gray-300 p-2 w-full mb-4">
+            {% endif %}
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Update</button>
+            <hr class="my-6 border-gray-300">
+            <h3 class="text-lg font-semibold mb-2">New Service:</h3>
+            <label for="service_name" class="block text-gray-700 mb-2">Service Name</label>
+            <input type="text" id="service_name" name="service_name" class="border border-gray-300 p-2 w-full mb-4">
+            <label for="description" class="block text-gray-700 mb-2">Service Description</label>
+            <textarea id="service_description" name="service_description" class="border border-gray-300 p-2 w-full mb-4"></textarea>
+            <label for="service_image" class="block text-gray-700 mb-2">Service Image</label>
+            <input type="file" id="service_image" name="service_image" accept="image/*" class="border border-gray-300 p-2 w-full mb-4">
+            <button type="button" id="addService" class="bg-blue-500 text-white px-4 py-2 rounded">Add Service</button>
+            <script>
+            document.getElementById('addService').addEventListener('click', async function() {
+                const name = document.getElementById('service_name').value.trim();
+                const description = document.getElementById('service_description').value.trim();
+                const imageInput = document.getElementById('service_image');
+                const token = "{{ token }}";
+                if (!name || !description) {
+                    alert('Please provide both a service name and description.');
+                    return;
+                }
+                const formData = new FormData();
+                formData.append('name', name);
+                formData.append('description', description);
+                if (imageInput.files.length > 0) {
+                    formData.append('service_image', imageInput.files[0]);
+                }
+                try {
+                    const res = await fetch('/services', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': 'Bearer ' + token,
+                        },
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (res.ok) {
+                        document.getElementById('serviceResponse').innerHTML = `<p>Service added successfully.</p>`;
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        document.getElementById('serviceResponse').innerHTML = `<p>${data.message || 'Failed to add service.'}</p>`;
+                    }
+                } catch (error) {
+                    document.getElementById('serviceResponse').innerHTML = `<p>Error: ${error.message}</p>`;
+                }
+            });
+            </script>
+            {% if profile.services_section.services %}
+                <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2">Your Services:</h3>
+                <ul class="flex flex-wrap gap-3">
+                    {% for service in profile.services_section.services %}
+                    <li class="bg-yellow-100 text-yellow-800 px-4 py-2 rounded-full shadow text-sm font-semibold">
+                        {{ service.name }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                </div>
+            {% else %}
+                <p class="mt-6 text-gray-500">No services found.</p>
+            {% endif %}
+            </form>
+            <div id="serviceResponse" class="mt-4"></div>
+        </div>
+
+        </div>
+    </main>
+</body>
+<script>
+    const aboutForm = document.getElementById('aboutForm');
+    const response1Div = document.getElementById('response1');
+    const token = "{{ token }}"; // Assuming the JWT token is passed to the template
+
+    document.getElementById('contactForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        console.log('Contact form submitted');
+        const form = event.target;
+        const formData = new FormData(form);
+        const contactSectionId = "{{ profile.contact_section.id }}";
+        const token = "{{ token }}";
+        try {
+            const res = await fetch('/contact_sections/' + contactSectionId, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: formData
+            });
+            const data = await res.json();
+            document.getElementById('response1').innerHTML = `<p>Server Response: ${data.message}</p>`;
+        } catch (error) {
+            document.getElementById('response1').innerHTML = `<p>Error: ${error.message}</p>`;
+        }
+    });
+            
+    aboutForm.addEventListener('submit', async (event) => {
+        event.preventDefault(); // Prevent the default form submission
+
+        // Get the form data
+        const formData = new FormData(aboutForm);
+        const aboutSectionId = "{{ profile.about_section.id }}";
+        const jsonData = {};
+
+        // Get selected tools as an array of values
+        const toolsSelect = document.getElementById('tools');
+        const selectedTools = Array.from(toolsSelect.selectedOptions).map(opt => opt.value);
+        jsonData['tools'] = selectedTools;
+
+        // Add other form fields to jsonData
+        formData.forEach((value, key) => {
+            if (key !== 'tools') {
+                jsonData[key] = value;
+            }
+        });
+
+        try {
+            // Send the data to the server using a PUT request with JSON body
+            const res = await fetch('/about_sections/' + aboutSectionId, {
+                method: 'PUT',
+                body: JSON.stringify(jsonData),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + token,
+                },
+            });
+
+            // Parse the JSON response from the server
+            const data = await res.json();
+
+            // Display the response from the server
+            response1Div.innerHTML = `<p>Server Response: ${data.message}</p>`;
+
+        } catch (error) {
+            console.error('Error:', error);
+            response1Div.innerHTML = `<p>Error: ${error.message}</p>`;
+        }
+    });
+
+    document.getElementById('projectsForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const token = "{{ token }}"; // Assuming the JWT token is passed to the template
+
+        // Add selected tools as a formData item named 'tools'
+        const toolsSelect = document.getElementById('project_tools');
+        const selectedTools = Array.from(toolsSelect.selectedOptions).map(opt => opt.value);
+        // If your backend expects a comma-separated string:
+        formData.set('tools', selectedTools.join(','));
+        // If your backend expects multiple 'tools' fields, use:
+        // selectedTools.forEach(toolId => formData.append('tools', toolId));
+
+        try {
+            const res = await fetch('/projects', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token,
+                },
+                body: formData
+            });
+            const data = await res.json();
+            document.getElementById('response').innerHTML = `<p>Server Response: ${data.message}</p>`;
+        } catch (error) {
+            document.getElementById('response').innerHTML = `<p>Error: ${error.message}</p>`;
+        }
+    });
+
+    document.getElementById('servicesForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const formData = new FormData(form);
+        const token = "{{ token }}"; // Assuming the JWT token is passed to the template
+
+        try {
+            // Convert form data to JSON
+            const jsonData = {};
+            const introText = form.querySelector('input[name="intro_text"]').value;
+            jsonData['intro_text'] = introText;
+
+            const res = await fetch('/services_sections/' + "{{profile.services_section.id}}", {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            },
+            body: JSON.stringify(jsonData)
+            });
+            const data = await res.json();
+            document.getElementById('serviceResponse').innerHTML = `<p>Server Response: ${data.message}</p>`;
+        } catch (error) {
+            document.getElementById('serviceResponse').innerHTML = `<p>Error: ${error.message}</p>`;
+        }
+    });
+</script>
+</html>

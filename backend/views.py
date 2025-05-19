@@ -2,7 +2,9 @@ import datetime
 import os
 from flask import (Blueprint, abort, current_app, request, jsonify, render_template, make_response)
 from flask_restful import Resource, marshal_with
+from flask_wtf.csrf import generate_csrf, validate_csrf
 from werkzeug.utils import secure_filename
+from flask_jwt_extended import create_access_token
 from werkzeug.exceptions import HTTPException
 from flask_jwt_extended import jwt_required
 import json
@@ -83,10 +85,33 @@ def get_user_profile(username):
     return render_template('portfolio.html', profile=profile.profile_dict(), get_date_string=get_date_string)
 
 
+@views.route('/', methods=['GET'])
+def get_tool():
+    return render_template('tool.html')
+
+
 @views.route('/profile_data/<string:username>/', methods=['GET'])
 def get_user_profile_data(username):
     profile = User.query.filter_by(username=username).one_or_404()
     return jsonify(profile.profile_dict())
+
+
+@views.route('/cms/<string:username>/edit', methods=['GET'])
+def create_tool(username):
+    profile = User.query.filter_by(username=username).one_or_404()
+    locations = Location.query.all()
+    access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=100))
+    tools = Tool.query.all()
+
+    return render_template('cms.html', profile=profile.to_dict(), token=access_token, locations=locations, tools=tools)
+
+
+@views.route('/cms/<string:username>/profile/edit', methods=['GET'])
+def update_profile(username):
+    user = User.query.filter_by(username=username).one_or_404()
+    portfolio = Portfolio.query.filter_by(user_id=user.id).first()
+
+    return render_template('profile.html', portfolio=portfolio.profile_dict())
 
 @views.route("/users/", methods=['GET'])
 @jwt_required()
@@ -598,14 +623,25 @@ def get_create_services():
         return jsonify(services)
     elif request.method == 'POST':
         create_fields = request.form
-        
+
         service_name = create_fields['name']
         description = create_fields['description']
 
         services_section = ServicesSection.query.filter_by(user_id=current_user.id).first()
 
-        new_service = Service(name=service_name, description=description,
-                              services_section_id=services_section.id)
+        # Handle image upload if file is present
+        image_filename = None
+        if 'service_image' in request.files and request.files['service_image'].filename != '':
+            uploaded_file = request.files['service_image']
+            image_filename = f"{new_filename()}{get_file_extension(uploaded_file.filename)}"
+            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'], image_filename))
+
+        new_service = Service(
+            name=service_name,
+            description=description,
+            services_section_id=services_section.id,
+            image=image_filename
+        )
 
         db.session.add(new_service)
         db.session.commit()
@@ -803,8 +839,7 @@ def get_create_projects():
         projects = [project.to_dict() for project in Project.query.all()]
         return jsonify(projects)
     elif request.method == 'POST':
-        create_fields = request.json
-
+        create_fields = request.form.to_dict()
         name = create_fields['name']
         description = create_fields['description']
         user_id = current_user.id
@@ -817,12 +852,23 @@ def get_create_projects():
         db.session.add(project)
         db.session.commit()
 
+        # Handle tools if provided
         if 'tools' in create_fields.keys():
-            for tool_id in create_fields['tools']:
+            tools = request.form.getlist('tools')
+            for tool_id in tools:
                 tool = Tool.query.get_or_404(tool_id)
                 project.tools.append(tool)
+            db.session.commit()
 
-        db.session.commit()
+        # Handle image upload if file is present
+        if 'project_image' in request.files and request.files['project_image'].filename != '':
+            uploaded_file = request.files['project_image']
+            # Save image using the same logic as update_project_image
+            new_pic = f"{new_filename()}{get_file_extension(uploaded_file.filename)}"
+            uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'], new_pic))
+            project.image = new_pic
+            print(project.image)
+            db.session.commit()
 
         response = make_response(jsonify({"message": "Added New Project"}))
         return response, 200
@@ -915,7 +961,6 @@ def update_project_image(project_id):
 @jwt_required()
 def get_create_tools():
     if request.method == 'GET':
-
         tools = [tool.to_dict() for tool in Tool.query.all()]
         return jsonify(tools)
     elif request.method == 'POST':

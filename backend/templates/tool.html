@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask Post Example</title>
+</head>
+<body>
+    <h1>Send Data to Server</h1>
+
+    <form id="myForm">
+        <label for="name">Tool Name:</label>
+        <input type="text" id="name" name="name" ><br><br>
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <div id="response">
+    </div>
+
+    <script>
+        const form = document.getElementById('myForm');
+        const responseDiv = document.getElementById('response');
+
+        form.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get the form data
+            const formData = new FormData(form);
+
+            try {
+                // Send the data to the server using a POST request
+                const res = await fetch('/tools', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTc0NzQzMzc0OSwianRpIjoiMzQ5OGJjOWYtOGUxMy00ZTc1LTgwZWEtMGEwYmIzMTg3ODFjIiwidHlwZSI6ImFjY2VzcyIsInN1YiI6InRvbTRzIiwibmJmIjoxNzQ3NDMzNzQ5LCJjc3JmIjoiZGU0ZjJlNDctOWNjMi00MjBlLTk4NzItYzhjNjgzNzE1MjJhIiwiZXhwIjoxNzUwMDI1NzQ5fQ.EQMPwGEYyGBoFYkZXoWghkF0S_-s_rU02dwtt91TfCc', // Assuming the JWT token is stored in a cookie
+                    }
+                });
+
+                // Parse the JSON response from the server
+                const data = await res.json();
+
+                // Display the response from the server
+                responseDiv.innerHTML = `<p>Server Response: ${data.message}</p>`;
+
+            } catch (error) {
+                console.error('Error:', error);
+                responseDiv.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        });
+    </script>
+</body>
+</html>
