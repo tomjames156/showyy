@@ -110,8 +110,9 @@ def create_tool(username):
 def update_profile(username):
     user = User.query.filter_by(username=username).one_or_404()
     portfolio = Portfolio.query.filter_by(user_id=user.id).first()
+    access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=100))
 
-    return render_template('profile.html', portfolio=portfolio.profile_dict())
+    return render_template('profile.html', profile=user.to_dict(), portfolio=portfolio.to_dict(), token=access_token)
 
 @views.route("/users/", methods=['GET'])
 @jwt_required()
@@ -485,7 +486,10 @@ def get_create_experiences():
             del create_fields['start_date']
 
         if 'end_date' in create_fields.keys():
-            new_experience.end_date = datetime.datetime.fromisoformat(create_fields['end_date'])
+            if create_fields['end_date'] is None:
+                new_experience.end_date = None
+            else:
+                new_experience.end_date = datetime.datetime.fromisoformat(create_fields['end_date'])
             del create_fields['end_date']
 
         for key, value in create_fields.items():

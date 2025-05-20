@@ -6,14 +6,129 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logoo.png') }}">
+    </head>
+    <style>
+        .logo-img {
+            height: 2.5rem;
+            width: 2.5rem;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <header class="bg-gray-800 text-white py-4 text-center">
-        <h1 class="text-2xl font-bold">Content Management System</h1>
+        <h1 class="text-2xl font-bold">Freelancr - Content Management System</h1>
     </header>
-    <main>
+    <aside class="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col py-8 px-4 z-20">
+        <nav class="flex flex-col gap-4">
+            <div class="flex items-center gap-3 px-3 mb-2">
+                {% if profile.portfolio.profile_pic %}
+                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/' ~ 'default_usr.jpg') }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                {% endif %}
+                <span class="font-bold text-lg">{{ profile.username }}</span>
+            </div>
+            <a href="./../edit#about-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">About Section</a>
+            <a href="./../edit#contact-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Contact Section</a>
+            <a href="./../edit#projects-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Projects</a>
+            <a href="./../edit#services-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Services Section</a>
+            <a href="./../edit#experiences-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Work Experience</a>
+        </nav>
+    </aside>
+    <style>
+        @media (min-width: 640px) {
+            main {
+                margin-left: 14rem;
+            }
+        }
+    </style>
+    <script>
+        // Smooth scroll for side nav
+        // Add scroll-padding-top to html for smooth scroll offset
+        document.documentElement.style.scrollPaddingTop = '1rem';
+
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+            });
+        });
+    </script>
+    <main class="px-10">
         <div class="container mx-auto mt-8">
+            <div class="container mx-auto mt-6 flex justify-end">
+            <a href="./../edit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                Back to CMS
+            </a>
+        </div>
             <h2 class="text-xl font-semibold mb-4">Profile</h2>
         </div>
+        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div>
+                <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
+                <span class="font-bold text-gray-900">{{ profile.username }}</span>
+            </div>
+            <div>
+                <label for="role" class="block text-gray-700 font-medium mb-2">Role</label>
+                <input type="text" id="role" name="role" value="{{ profile.portfolio.role }}" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+            </div>
+            <div>
+                <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
+                <span class="font-bold text-gray-900">{{ profile.email }}</span>
+            </div>
+            <div>
+                <label for="profile_pic" class="block text-gray-700 font-medium mb-2">Profile Picture</label>
+                <input type="file" id="profile_pic" name="profile_pic" class="w-full border border-gray-300 rounded px-3 py-2">
+                {% if profile.portfolio.profile_pic %}
+                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Current Profile Picture" class="mt-2 w-20 h-20 rounded-full object-cover border">
+                {% endif %}
+            </div>
+            <div>
+                <label for="profile_pic" class="block text-gray-700 font-medium mb-2">Resume</label>
+                <input type="file" id="profile_pic" name="profile_pic" class="w-full border border-gray-300 rounded px-3 py-2">
+                {% if profile.portfolio.resume %}
+                <div class="mt-2 flex items-center gap-2 bg-gray-100 border border-gray-300 rounded px-4 py-2 w-fit shadow-sm">
+                    <a href="{{ url_for('static', filename='docs/' + profile.portfolio.resume) }}" class="text-blue-600 hover:underline font-medium" target="_blank">
+                        Your Resume
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Social Links</label>
+                <div class="space-y-2">
+                    {% for link in profile.portfolio.social_links %}
+                    <div class="flex items-center gap-2">
+                        <input type="hidden" name="social_link_id_{{ loop.index }}" value="{{ link.id }}">
+                        <span class="font-bold w-24">{{ link.link_type }}</span>
+                        <input type="url" name="social_link_value_{{ loop.index }}" value="{{ link.link_value }}" placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72">
+                    </div>
+                    {% endfor %}
+                    <!-- New social link input -->
+                    <div class="flex items-center gap-2">
+                        <select name="new_social_link_type" class="border border-gray-300 rounded px-2 py-1">
+                            <option value="">Add new...</option>
+                            <option value="GitHub">GitHub</option>
+                            <option value="LinkedIn">LinkedIn</option>
+                            <option value="Twitter">Twitter</option>
+                            <option value="Website">Website</option>
+                            <!-- Add more options as needed -->
+                        </select>
+                        <input type="url" name="new_social_link_value" placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72">
+                        <button type="submit" name="add_social_link" value="1" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Add</button>
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Save Changes</button>
+        </form>
     </main>
 </body>

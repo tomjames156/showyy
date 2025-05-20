@@ -2,10 +2,23 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Content Management System</title>
+    <title>Freelancr | {{profile.username}} Portfolio Update</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Logo in header -->
+    <head>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logoo.png') }}">
+    </head>
+    <style>
+        .logo-img {
+            height: 2.5rem;
+            width: 2.5rem;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <header class="bg-gray-800 text-white py-4 text-center">
@@ -13,7 +26,7 @@
     </header>
     <aside class="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col py-8 px-4 z-20">
         <nav class="flex flex-col gap-4">
-            <div class="flex items-center gap-3 px-3 mb-2">
+            <a href="./profile/edit" class="flex items-center gap-3 px-3 mb-2 hover:bg-gray-800 rounded transition">
                 {% if profile.portfolio.profile_pic %}
                 <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
                 {% else %}
@@ -25,6 +38,7 @@
             <a href="#contact-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Contact Section</a>
             <a href="#projects-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Projects</a>
             <a href="#services-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Services Section</a>
+            <a href="#experiences-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Work Experience</a>
         </nav>
     </aside>
     <style>
@@ -52,8 +66,8 @@
     </script>
     <main class="px-10">
         <div class="container mx-auto mt-6 flex justify-end">
-            <a href="./profile/edit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
-                Edit Profile
+            <a href="./../../profile/{{profile.username}}" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                View Portfolio
             </a>
         </div>
         <div id="about-section" class="container mx-auto mt-8">
@@ -344,9 +358,45 @@
             {% endif %}
             </form>
             <div id="serviceResponse" class="mt-4"></div>
-        </div>
+        
+        <div id="experiences-section" class="container mx-auto my-8">
+        <h2 class="text-xl font-semibold mb-4">Experiences</h2>
+        <form id="experiencesForm" class="bg-white p-6 rounded shadow-md">
+            <label for="role" class="block text-gray-700 mb-2">Role</label>
+            <input type="text" id="role" name="role" class="border border-gray-300 p-2 w-full mb-4">
 
+            <label for="organization" class="block text-gray-700 mb-2">Organization</label>
+            <input type="text" id="organization" name="organization" class="border border-gray-300 p-2 w-full mb-4">
+
+            <label for="start_date" class="block text-gray-700 mb-2">Start Date</label>
+            <input type="date" id="start_date" name="start_date" class="border border-gray-300 p-2 w-48 mb-4">
+
+            <label for="end_date" class="block text-gray-700 mb-2">End Date</label>
+            <input type="date" id="end_date" name="end_date" class="border border-gray-300 p-2 w-48 mb-4">
+
+            <label for="bullet_points" class="block text-gray-700 mb-2">Bullet Points</label>
+            <textarea id="bullet_points" name="bullet_points" class="border border-gray-300 p-2 w-full mb-4" placeholder="Enter each bullet point on a new line"></textarea>
+            <small class="text-gray-500 mb-2 block">Enter each bullet point on a new line.</small>
+
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Experience</button>
+
+            <div id="experienceResponse" class="mt-4"></div>
+            {% if profile.experiences %}
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold mb-2">Your Experiences:</h3>
+                    <ul class="flex flex-col gap-3">
+                        {% for exp in profile.experiences %}
+                        <li class="bg-gray-100 px-4 py-3 rounded shadow text-sm w-fit">
+                            <div class="font-bold">{{ exp.organization }} - {{ exp.role }}</div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p class="mt-6 text-gray-500">No experiences found.</p>
+            {% endif %}
         </div>
+        </form>
     </main>
 </body>
 <script>
@@ -472,6 +522,53 @@
             document.getElementById('serviceResponse').innerHTML = `<p>Server Response: ${data.message}</p>`;
         } catch (error) {
             document.getElementById('serviceResponse').innerHTML = `<p>Error: ${error.message}</p>`;
+        }
+    });
+
+    document.getElementById('experiencesForm').addEventListener('submit', async function(event) {
+        event.preventDefault();
+        const form = event.target;
+        const token = "{{ token }}";
+
+        // Get form values
+        const role = form.querySelector('input[name="role"]').value.trim();
+        const organization = form.querySelector('input[name="organization"]').value.trim();
+        const start_date = form.querySelector('input[name="start_date"]').value;
+        let end_date = form.querySelector('input[name="end_date"]').value;
+        if (end_date === "") {
+            end_date = null;
+        }
+        const bulletPointsRaw = form.querySelector('textarea[name="bullet_points"]').value;
+
+        // Split bullet points by new lines
+        const bullet_points = bulletPointsRaw
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+
+        // Build JSON data
+        const jsonData = {
+            role,
+            organization,
+            start_date,
+            end_date,
+            bullet_points
+        };
+
+        try {
+            const res = await fetch('/experiences', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + token,
+            },
+            body: JSON.stringify(jsonData)
+            });
+            const data = await res.json();
+            document.getElementById('experienceResponse').innerHTML = `<p>Server Response: ${data.message}</p>`;
+            if (res.ok) setTimeout(() => location.reload(), 1000);
+        } catch (error) {
+            document.getElementById('experienceResponse').innerHTML = `<p>Error: ${error.message}</p>`;
         }
     });
 </script>
