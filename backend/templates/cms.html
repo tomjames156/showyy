@@ -1,75 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Freelancr | {{profile.username}} Portfolio Update</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Logo in header -->
-    <head>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logoo.png') }}">
-    </head>
-    <style>
-        .logo-img {
-            height: 2.5rem;
-            width: 2.5rem;
-            object-fit: contain;
-            display: inline-block;
-            vertical-align: middle;
-        }
-    </style>
-</head>
+{% extends "cms_base_layout.html" %}
+{% block title %} Update Portfolio {% endblock %}
 <body class="bg-gray-100">
-    <header class="bg-gray-800 text-white py-4 text-center">
-        <h1 class="text-2xl font-bold">Freelancr - Content Management System</h1>
-    </header>
-    <aside class="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col py-8 px-4 z-20">
-        <nav class="flex flex-col gap-4">
-            <a href="./profile/edit" class="flex items-center gap-3 px-3 mb-2 hover:bg-gray-800 rounded transition">
-                {% if profile.portfolio.profile_pic %}
-                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
-                {% else %}
-                <img src="{{ url_for('static', filename='images/' ~ 'default_usr.jpg') }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
-                {% endif %}
-                <span class="font-bold text-lg">{{ profile.username }}</span>
-            </div>
-            <a href="#about-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">About Section</a>
-            <a href="#contact-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Contact Section</a>
-            <a href="#projects-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Projects</a>
-            <a href="#services-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Services Section</a>
-            <a href="#experiences-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Work Experience</a>
-        </nav>
-    </aside>
-    <style>
-        @media (min-width: 640px) {
-            main {
-                margin-left: 14rem;
-            }
-        }
-    </style>
-    <script>
-        // Smooth scroll for side nav
-        // Add scroll-padding-top to html for smooth scroll offset
-        document.documentElement.style.scrollPaddingTop = '1rem';
-
-        document.querySelectorAll('aside nav a').forEach(link => {
-            link.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href').substring(1);
-            const target = document.getElementById(targetId);
-            if (target) {
-                e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth' });
-            }
-            });
-        });
-    </script>
+    {% block page_title %} Edit Portfolio {% endblock %}
     <main class="px-10">
-        <div class="container mx-auto mt-6 flex justify-end">
-            <a href="./../../profile/{{profile.username}}" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
-                View Portfolio
-            </a>
-        </div>
+        {% block content %}
         <div id="about-section" class="container mx-auto mt-8">
             <h2 class="text-xl font-semibold mb-4">About Section</h2>
             <form id="aboutForm" class="bg-white p-6 rounded shadow-md">
@@ -156,8 +90,8 @@
             <div id="response1" class="mt-4"></div>
         </div>
 
-        <div id="contact-section"class="container mx-auto mt-8">
-            
+        <div id="contact-section" class="container mx-auto mt-8">
+
             <h2 class="text-xl font-semibold mb-4">Contact Section</h2>
             <form id="contactForm" class="bg-white p-6 rounded shadow-md">
             <label for="intro_text" class="block text-gray-700 mb-2">Intro Text:</label>
@@ -358,10 +292,11 @@
             {% endif %}
             </form>
             <div id="serviceResponse" class="mt-4"></div>
-        
-        <div id="experiences-section" class="container mx-auto my-8">
-        <h2 class="text-xl font-semibold mb-4">Experiences</h2>
-        <form id="experiencesForm" class="bg-white p-6 rounded shadow-md">
+        </div>
+
+        <div id="experiences-section" class="container mx-auto my-8 bg-white p-6 rounded shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Work Experience</h2>
+            <form id="experiencesForm" class="">
             <label for="role" class="block text-gray-700 mb-2">Role</label>
             <input type="text" id="role" name="role" class="border border-gray-300 p-2 w-full mb-4">
 
@@ -379,6 +314,7 @@
             <small class="text-gray-500 mb-2 block">Enter each bullet point on a new line.</small>
 
             <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Add Experience</button>
+            </form>
 
             <div id="experienceResponse" class="mt-4"></div>
             {% if profile.experiences %}
@@ -396,9 +332,11 @@
                 <p class="mt-6 text-gray-500">No experiences found.</p>
             {% endif %}
         </div>
-        </form>
+        {% endblock %}
     </main>
+
 </body>
+{% block inline_js %}
 <script>
     const aboutForm = document.getElementById('aboutForm');
     const response1Div = document.getElementById('response1');
@@ -572,4 +510,4 @@
         }
     });
 </script>
-</html>
+{% endblock %}

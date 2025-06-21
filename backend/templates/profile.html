@@ -1,79 +1,16 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Content Management System</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logoo.png') }}">
-    </head>
-    <style>
-        .logo-img {
-            height: 2.5rem;
-            width: 2.5rem;
-            object-fit: contain;
-            display: inline-block;
-            vertical-align: middle;
-        }
-    </style>
-</head>
-<body class="bg-gray-100">
-    <header class="bg-gray-800 text-white py-4 text-center">
-        <h1 class="text-2xl font-bold">Freelancr - Content Management System</h1>
-    </header>
-    <aside class="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col py-8 px-4 z-20">
-        <nav class="flex flex-col gap-4">
-            <div class="flex items-center gap-3 px-3 mb-2">
-                {% if profile.portfolio.profile_pic %}
-                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
-                {% else %}
-                <img src="{{ url_for('static', filename='images/' ~ 'default_usr.jpg') }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
-                {% endif %}
-                <span class="font-bold text-lg">{{ profile.username }}</span>
-            </div>
-            <a href="./../edit#about-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">About Section</a>
-            <a href="./../edit#contact-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Contact Section</a>
-            <a href="./../edit#projects-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Projects</a>
-            <a href="./../edit#services-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Services Section</a>
-            <a href="./../edit#experiences-section" class="hover:bg-gray-700 rounded px-3 py-2 transition">Work Experience</a>
-        </nav>
-    </aside>
-    <style>
-        @media (min-width: 640px) {
-            main {
-                margin-left: 14rem;
-            }
-        }
-    </style>
-    <script>
-        // Smooth scroll for side nav
-        // Add scroll-padding-top to html for smooth scroll offset
-        document.documentElement.style.scrollPaddingTop = '1rem';
-
-        document.querySelectorAll('aside nav a').forEach(link => {
-            link.addEventListener('click', function(e) {
-            const targetId = this.getAttribute('href').substring(1);
-            const target = document.getElementById(targetId);
-            if (target) {
-                e.preventDefault();
-                target.scrollIntoView({ behavior: 'smooth' });
-            }
-            });
-        });
-    </script>
+{% extends "cms_base_layout.html" %}
+<body class="bg-gray-100 ">
+    {% block page_title %} Edit Profile {% endblock %}
     <main class="px-10">
+        {% block content %}
         <div class="container mx-auto mt-8">
             <div class="container mx-auto mt-6 flex justify-end">
-            <a href="./../edit" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
-                Back to CMS
-            </a>
         </div>
             <h2 class="text-xl font-semibold mb-4">Profile</h2>
         </div>
         <form method="POST" enctype="multipart/form-data" class="space-y-6">
             <div>
-                <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
+                <div class="block text-gray-700 font-medium mb-2">Username</div>
                 <span class="font-bold text-gray-900">{{ profile.username }}</span>
             </div>
             <div>
@@ -81,14 +18,16 @@
                 <input type="text" id="role" name="role" value="{{ profile.portfolio.role }}" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
             </div>
             <div>
-                <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
+                <div for="email" class="block text-gray-700 font-medium mb-2">Email</div>
                 <span class="font-bold text-gray-900">{{ profile.email }}</span>
             </div>
             <div>
                 <label for="profile_pic" class="block text-gray-700 font-medium mb-2">Profile Picture</label>
                 <input type="file" id="profile_pic" name="profile_pic" class="w-full border border-gray-300 rounded px-3 py-2">
+                <button type="button" id="uploadProfilePicBtn" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded" onclick="() => alert('Nooo')">Upload Profile Picture</button>
+                <div id="profilePicUploadMsg" class="mt-2 text-sm"></div>
                 {% if profile.portfolio.profile_pic %}
-                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Current Profile Picture" class="mt-2 w-20 h-20 rounded-full object-cover border">
+                <img id="currentProfilePic" src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Current Profile Picture" class="mt-2 w-20 h-20 rounded-full object-cover border">
                 {% endif %}
             </div>
             <div>
@@ -109,26 +48,102 @@
                     <div class="flex items-center gap-2">
                         <input type="hidden" name="social_link_id_{{ loop.index }}" value="{{ link.id }}">
                         <span class="font-bold w-24">{{ link.link_type }}</span>
-                        <input type="url" name="social_link_value_{{ loop.index }}" value="{{ link.link_value }}" placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72">
+                        <span>{{ link.link_value }}</span>
                     </div>
                     {% endfor %}
                     <!-- New social link input -->
                     <div class="flex items-center gap-2">
-                        <select name="new_social_link_type" class="border border-gray-300 rounded px-2 py-1">
-                            <option value="">Add new...</option>
-                            <option value="GitHub">GitHub</option>
-                            <option value="LinkedIn">LinkedIn</option>
-                            <option value="Twitter">Twitter</option>
-                            <option value="Website">Website</option>
-                            <!-- Add more options as needed -->
-                        </select>
-                        <input type="url" name="new_social_link_value" placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72">
-                        <button type="submit" name="add_social_link" value="1" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Add</button>
-                    </div>
+                        <form id="add-social-link-form">
+                            <div class="h-content">
+                                <select name="new_social_link_type" class="border border-gray-300 rounded px-2 py-1">
+                                    <option value="">Add new...</option>
+                                    <option value="GitHub">GitHub</option>
+                                    <option value="LinkedIn">LinkedIn</option>
+                                    <option value="Twitter">Twitter</option>
+                                    <option value="Website">Website</option>
+                                    <!-- Add more options as needed -->
+                                </select>
+                                <input type="url" name="new_social_link_value" placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72 mb-5">
+                                <button type="submit" name="add_social_link" value="1" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Add</button>
+                            </div>
+                        </div>
                 </div>
             </div>
-            
-            <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700 transition">Save Changes</button>
+            <div class="flex justify-between">
+                <button
+                        type="submit" class="bg-blue-600 text-white my-6 px-6 py-2 rounded
+                        hover:bg-red-700
+                        transition">Update Profile</button>
+                <a href="{{url_for('views.cms', username=profile.username)}}"
+                        class="bg-red-600 text-white my-6 px-6 py-2 rounded hover:bg-red-700 transition">Cancel</a>
+            </div>
         </form>
+        {% endblock %}
     </main>
 </body>
+<script>
+    document.getElementById('add-social-link-form').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+
+        const formData = new FormData(this);
+
+        fetch('/social_links/', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'Authorization': 'Bearer {{ jwt_token }}' // Assuming the JWT token is stored in a variable
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Social link added successfully!');
+                location.reload(); // Reload the page to see the changes
+            } else {
+                alert('Error adding social link: ' + data.message);
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+
+    document.getElementById('uploadProfilePicBtn').addEventListener('click', function(event) {
+        const fileInput = document.getElementById('profile_pic');
+        const msgDiv = document.getElementById('profilePicUploadMsg');
+        console.log(fileInput.files);
+        if (!fileInput.files.length) {
+            msgDiv.textContent = 'Please select a file to upload.';
+            msgDiv.className = 'mt-2 text-sm text-red-600';
+            return;
+        }
+        const formData = new FormData();
+        formData.append('profile_pic', fileInput.files[0]);
+        try {
+            const res = await fetch('/profile/upload_pic', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Authorization': 'Bearer {{ jwt_token }}'
+                }
+            });
+            const data = await res.json();
+            if (res.ok && data.success) {
+                msgDiv.textContent = 'Profile picture updated!';
+                msgDiv.className = 'mt-2 text-sm text-green-600';
+                // Update the displayed image if present
+                if (data.new_pic_url) {
+                    const img = document.getElementById('currentProfilePic');
+                    if (img) img.src = data.new_pic_url + '?t=' + Date.now();
+                } else {
+                    location.reload();
+                }
+            } else {
+                msgDiv.textContent = data.message || 'Upload failed.';
+                msgDiv.className = 'mt-2 text-sm text-red-600';
+            }
+        } catch (err) {
+            msgDiv.textContent = 'Error uploading: ' + err.message;
+            msgDiv.className = 'mt-2 text-sm text-red-600';
+        }
+    });
+</script>
+</html>

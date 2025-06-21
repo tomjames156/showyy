@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% block head %}
+    <title>Freelancr | {% block title %} {% endblock %} </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Logo in header -->
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='images/logoo.png') }}">
+    <style>
+        main{
+            scroll-behaviour: smooth;
+            overflow-y: scroll;
+            scroll-padding-top: 2rem;
+        }
+        .logo-img {
+            height: 2.5rem;
+            width: 2.5rem;
+            object-fit: contain;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @media (min-width: 640px) {
+            main, footer {
+                margin-left: 14rem;
+            }
+    </style>
+    <script>
+        // Smooth scroll for side nav
+        // Add scroll-padding-top to html for smooth scroll offset
+        document.documentElement.style.scrollPaddingTop = '1rem';
+
+        document.querySelectorAll('aside nav a').forEach(link => {
+            link.addEventListener('click', function(e) {
+            const targetId = this.getAttribute('href').substring(1);
+            const target = document.getElementById(targetId);
+            if (target) {
+                e.preventDefault();
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+            });
+        });
+    </script>
+    {% endblock %}
+</head>
+<body class="bg-gray-100 relative h-full w-full">
+    <header class="bg-gray-800 text-white py-4 text-center">
+        <h1 class="text-2xl font-bold">{% block page_title %} {% endblock %}</h1>
+    </header>
+    <aside class="fixed top-0 left-0 h-full w-56 bg-gray-900 text-white flex flex-col py-8 px-4 z-20">
+        <nav class="flex flex-col gap-4">
+            <a href="{{url_for('views.profile', username=profile.username)}}"
+               class="flex items-center gap-3 px-3 mb-2 hover:bg-gray-800 rounded transition">
+                {% if profile.portfolio.profile_pic %}
+                <img src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                {% else %}
+                <img src="{{ url_for('static', filename='images/' ~ 'default_usr.jpg') }}" alt="Profile Picture" class="w-10 h-10 rounded-full object-cover border-2 border-gray-700">
+                {% endif %}
+                <span class="font-bold text-lg">{{ profile.username }}</span>
+            </a>
+            <a href="{{url_for('views.cms', username=profile.username)}}#about-section"
+               class="hover:bg-gray-700 rounded px-3 py-2 transition">About</a>
+            <a href="{{url_for('views.cms', username=profile.username)}}#contact-section"
+               class="hover:bg-gray-700 rounded px-3 py-2 transition">Contact</a>
+            <a href="{{url_for('views.cms', username=profile.username)}}#projects-section"
+               class="hover:bg-gray-700 rounded px-3 py-2 transition">Projects</a>
+            <a href="{{url_for('views.cms', username=profile.username)}}#services-section"
+               class="hover:bg-gray-700 rounded px-3 py-2 transition">Services</a>
+            <a href="{{url_for('views.cms', username=profile.username)}}#experiences-section"
+               class="hover:bg-gray-700 rounded px-3 py-2 transition">Work Experience</a>
+            <a href="{{url_for('views.portfolio', username=profile.username)}}" target="_blank"
+               class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded transition duration-200">
+                View Portfolio
+            </a>
+        </nav>
+    </aside>
+    <main class="px-10">
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer class="text-center text-gray-600 text-[0.8rem] mt-20 mb-4">
+            Powered by Freelancr &copy; 2025
+    </footer>
+</body>
+{% block inline_js %}
+{% endblock %}
+</html>

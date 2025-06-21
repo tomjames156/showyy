@@ -80,7 +80,7 @@ def get_date_string(date):
 
 
 @views.route('/profile/<string:username>/', methods=['GET'])
-def get_user_profile(username):
+def portfolio(username):
     profile = User.query.filter_by(username=username).one_or_404()
     return render_template('portfolio.html', profile=profile.profile_dict(), get_date_string=get_date_string)
 
@@ -97,7 +97,7 @@ def get_user_profile_data(username):
 
 
 @views.route('/cms/<string:username>/edit', methods=['GET'])
-def create_tool(username):
+def cms(username):
     profile = User.query.filter_by(username=username).one_or_404()
     locations = Location.query.all()
     access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=100))
@@ -107,7 +107,7 @@ def create_tool(username):
 
 
 @views.route('/cms/<string:username>/profile/edit', methods=['GET'])
-def update_profile(username):
+def profile(username):
     user = User.query.filter_by(username=username).one_or_404()
     portfolio = Portfolio.query.filter_by(user_id=user.id).first()
     access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=100))
