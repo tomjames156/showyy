@@ -8,7 +8,7 @@
         </div>
             <h2 class="text-xl font-semibold mb-4">Profile</h2>
         </div>
-        <form method="POST" enctype="multipart/form-data" class="space-y-6">
+        <div class="space-y-6">
             <div>
                 <div class="block text-gray-700 font-medium mb-2">Username</div>
                 <span class="font-bold text-gray-900">{{ profile.username }}</span>
@@ -23,23 +23,136 @@
             </div>
             <div>
                 <label for="profile_pic" class="block text-gray-700 font-medium mb-2">Profile Picture</label>
-                <input type="file" id="profile_pic" name="profile_pic" class="w-full border border-gray-300 rounded px-3 py-2">
-                <button type="button" id="uploadProfilePicBtn" class="mt-2 bg-blue-500 text-white px-4 py-2 rounded" onclick="() => alert('Nooo')">Upload Profile Picture</button>
+                <form id="profilePicUploadForm">
+                    <input type="file" id="profile_pic" name="profile_pic" class="w-full border border-gray-300 rounded px-3 py-2">
+                    <button type="button" id="uploadProfilePicBtn"
+                        class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600" >
+                        {% if profile.portfolio.profile_pic %}
+                            Update Picture
+                        {% else %}
+                            Upload Picture
+                        {% endif %}
+                    </button>
+                </form>
+
                 <div id="profilePicUploadMsg" class="mt-2 text-sm"></div>
                 {% if profile.portfolio.profile_pic %}
                 <img id="currentProfilePic" src="{{ url_for('static', filename='images/' + profile.portfolio.profile_pic) }}" alt="Current Profile Picture" class="mt-2 w-20 h-20 rounded-full object-cover border">
                 {% endif %}
             </div>
             <div>
-                <label for="profile_pic" class="block text-gray-700 font-medium mb-2">Resume</label>
-                <input type="file" id="profile_pic" name="profile_pic" class="w-full border border-gray-300 rounded px-3 py-2">
-                {% if profile.portfolio.resume %}
-                <div class="mt-2 flex items-center gap-2 bg-gray-100 border border-gray-300 rounded px-4 py-2 w-fit shadow-sm">
-                    <a href="{{ url_for('static', filename='docs/' + profile.portfolio.resume) }}" class="text-blue-600 hover:underline font-medium" target="_blank">
-                        Your Resume
-                    </a>
+                <label for="resume" class="block text-gray-700 font-medium mb-2">Resume</label>
+                <form id="resumeUploadForm">
+                    <input type="file" id="resume" name="profile_pic"
+                       class="w-full border border-gray-300 rounded px-3 py-2">
+                    <div class="flex gap-4">
+                    <button type="button" id="uploadResumeBtn" onclick="() => {alert('YA YA!!')}"
+                            class="mt-2 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        {% if profile.portfolio.resume %}
+                            Update Resume
+                        {% else %}
+                            Upload Resume
+                        {% endif %}
+                    </button>
+                    <script>
+                                document.getElementById('addSocialLink').addEventListener('click', async function() {
+                                    const link_type = document.getElementById
+                                    ('new_social_link_type').value.trim()
+                                    const link_value = document.getElementById
+                                    ('new_social_link_value').value.trim()
+                                    const token = "{{ token }}";
+
+                                    const formData = new FormData();
+
+                                    if (!link_type || link_type === "Add new ...") {
+                                        alert('Please Select a Link Type');
+                                        return;
+                                    }
+
+                                    if (!link_value) {
+                                        alert('Please Enter a valid URL');
+                                        return;
+                                    }
+                                    try {
+                                        const formData = new FormData();
+                                        formData.append('link_type', link_type)
+                                        formData.append('link_value', link_value)
+                                        formData.append('portfolio_id', "{{profile.portfolio.id}}")
+
+                                        const res = await fetch('/social_links', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': 'Bearer ' + token,
+                                            },
+                                            body: formData
+                                        });
+                                        if (res.ok) {
+                                            location.reload();
+                                        } else {
+                                            const data = await res.json();
+                                            alert(data.message || 'Failed to add new social link.');
+                                        }
+                                    } catch (err) {
+                                        alert('Error: ' + err.message);
+                                    }
+                                });
+                                </script>
+                    {% if profile.portfolio.resume %}
+                    <div class="mt-2 flex items-center gap-2 bg-gray-100 border border-gray-300 rounded px-4 py-2 w-fit shadow-sm">
+                        <a href="{{ url_for('static', filename='docs/' + profile.portfolio.resume) }}" class="text-blue-600 hover:underline font-medium" target="_blank">
+                            Your Resume
+                        </a>
+                    </div>
+                    {% endif %}
                 </div>
-                {% endif %}
+                    <script>
+                        document.getElementById('uploadResumeBtn').addEventListener('click',
+                        function() {
+                            console.log("Yuno Miles")
+                        })
+                    </script>
+<!--                    <script>-->
+<!--                        document.getElementById('uploadResumeBtn').addEventListener('click', async-->
+<!--                        function() {-->
+<!--                            const token = "{{ token }}";-->
+<!--                            console.log("Yaya")-->
+
+<!--                            const formData = new FormData();-->
+
+<!--                            if (!link_type || link_type === "Add new ...") {-->
+<!--                                alert('Please Select a Link Type');-->
+<!--                                return;-->
+<!--                            }-->
+
+<!--                            if (!link_value) {-->
+<!--                                alert('Please Enter a valid URL');-->
+<!--                                return;-->
+<!--                            }-->
+<!--                            try {-->
+<!--                                const formData = new FormData();-->
+<!--                                formData.append('link_type', link_type)-->
+<!--                                formData.append('link_value', link_value)-->
+<!--                                formData.append('portfolio_id', "{{profile.portfolio.id}}")-->
+
+<!--                                const res = await fetch('/social_links', {-->
+<!--                                    method: 'POST',-->
+<!--                                    headers: {-->
+<!--                                        'Authorization': 'Bearer ' + token,-->
+<!--                                    },-->
+<!--                                    body: formData-->
+<!--                                });-->
+<!--                                if (res.ok) {-->
+<!--                                    location.reload();-->
+<!--                                } else {-->
+<!--                                    const data = await res.json();-->
+<!--                                    alert(data.message || 'Failed to add new social link.');-->
+<!--                                }-->
+<!--                            } catch (err) {-->
+<!--                                alert('Error: ' + err.message);-->
+<!--                            }-->
+<!--                        });-->
+<!--                    </script>-->
+                </form>
             </div>
             <div>
                 <label class="block text-gray-700 font-medium mb-2">Social Links</label>
@@ -55,95 +168,82 @@
                     <div class="flex items-center gap-2">
                         <form id="add-social-link-form">
                             <div class="h-content">
-                                <select name="new_social_link_type" class="border border-gray-300 rounded px-2 py-1">
+                                <select id="new_social_link_type" name="new_social_link_type"
+                                         class="border border-gray-300 rounded px-2 py-1">
                                     <option value="">Add new...</option>
                                     <option value="GitHub">GitHub</option>
                                     <option value="LinkedIn">LinkedIn</option>
                                     <option value="Twitter">Twitter</option>
+                                    <option value="Instagram">Instagram</option>
                                     <option value="Website">Website</option>
                                     <!-- Add more options as needed -->
                                 </select>
-                                <input type="url" name="new_social_link_value" placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72 mb-5">
-                                <button type="submit" name="add_social_link" value="1" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Add</button>
+                                <input id='new_social_link_value' type="url"
+                                       name="new_social_link_value"
+                                       placeholder="https://..." class="border border-gray-300 rounded px-2 py-1 w-72 mb-5">
+                                <button type='button' id="addSocialLink"
+                                        class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600 transition">Add</button>
                             </div>
-                        </div>
+                            <script>
+                                document.getElementById('addSocialLink').addEventListener('click', async function() {
+                                    const link_type = document.getElementById
+                                    ('new_social_link_type').value.trim()
+                                    const link_value = document.getElementById
+                                    ('new_social_link_value').value.trim()
+                                    const token = "{{ token }}";
+
+                                    const formData = new FormData();
+
+                                    if (!link_type || link_type === "Add new ...") {
+                                        alert('Please Select a Link Type');
+                                        return;
+                                    }
+
+                                    if (!link_value) {
+                                        alert('Please Enter a valid URL');
+                                        return;
+                                    }
+                                    try {
+                                        const formData = new FormData();
+                                        formData.append('link_type', link_type)
+                                        formData.append('link_value', link_value)
+                                        formData.append('portfolio_id', "{{profile.portfolio.id}}")
+
+                                        const res = await fetch('/social_links', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Authorization': 'Bearer ' + token,
+                                            },
+                                            body: formData
+                                        });
+                                        if (res.ok) {
+                                            location.reload();
+                                        } else {
+                                            const data = await res.json();
+                                            alert(data.message || 'Failed to add new social link.');
+                                        }
+                                    } catch (err) {
+                                        alert('Error: ' + err.message);
+                                    }
+                                });
+                                </script>
+                        </form>
+                    </div>
                 </div>
-            </div>
             <div class="flex justify-between">
                 <button
                         type="submit" class="bg-blue-600 text-white my-6 px-6 py-2 rounded
-                        hover:bg-red-700
+                        hover:bg-blue-700
                         transition">Update Profile</button>
                 <a href="{{url_for('views.cms', username=profile.username)}}"
                         class="bg-red-600 text-white my-6 px-6 py-2 rounded hover:bg-red-700 transition">Cancel</a>
             </div>
-        </form>
+        </div>
         {% endblock %}
     </main>
 </body>
+{% block inline_js %}
 <script>
-    document.getElementById('add-social-link-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
-
-        const formData = new FormData(this);
-
-        fetch('/social_links/', {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'Authorization': 'Bearer {{ jwt_token }}' // Assuming the JWT token is stored in a variable
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Social link added successfully!');
-                location.reload(); // Reload the page to see the changes
-            } else {
-                alert('Error adding social link: ' + data.message);
-            }
-        })
-        .catch(error => console.error('Error:', error));
-    });
-
-    document.getElementById('uploadProfilePicBtn').addEventListener('click', function(event) {
-        const fileInput = document.getElementById('profile_pic');
-        const msgDiv = document.getElementById('profilePicUploadMsg');
-        console.log(fileInput.files);
-        if (!fileInput.files.length) {
-            msgDiv.textContent = 'Please select a file to upload.';
-            msgDiv.className = 'mt-2 text-sm text-red-600';
-            return;
-        }
-        const formData = new FormData();
-        formData.append('profile_pic', fileInput.files[0]);
-        try {
-            const res = await fetch('/profile/upload_pic', {
-                method: 'POST',
-                body: formData,
-                headers: {
-                    'Authorization': 'Bearer {{ jwt_token }}'
-                }
-            });
-            const data = await res.json();
-            if (res.ok && data.success) {
-                msgDiv.textContent = 'Profile picture updated!';
-                msgDiv.className = 'mt-2 text-sm text-green-600';
-                // Update the displayed image if present
-                if (data.new_pic_url) {
-                    const img = document.getElementById('currentProfilePic');
-                    if (img) img.src = data.new_pic_url + '?t=' + Date.now();
-                } else {
-                    location.reload();
-                }
-            } else {
-                msgDiv.textContent = data.message || 'Upload failed.';
-                msgDiv.className = 'mt-2 text-sm text-red-600';
-            }
-        } catch (err) {
-            msgDiv.textContent = 'Error uploading: ' + err.message;
-            msgDiv.className = 'mt-2 text-sm text-red-600';
-        }
-    });
 </script>
+{% endblock %}
 </html>

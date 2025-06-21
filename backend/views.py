@@ -106,13 +106,17 @@ def cms(username):
     return render_template('cms.html', profile=profile.to_dict(), token=access_token, locations=locations, tools=tools)
 
 
-@views.route('/cms/<string:username>/profile/edit', methods=['GET'])
+@views.route('/cms/<string:username>/profile/edit', methods=['GET', 'POST'])
 def profile(username):
     user = User.query.filter_by(username=username).one_or_404()
     portfolio = Portfolio.query.filter_by(user_id=user.id).first()
     access_token = create_access_token(identity=username, expires_delta=datetime.timedelta(days=100))
 
+    # if request.method == 'POST':
+    #     print(request.form)
+
     return render_template('profile.html', profile=user.to_dict(), portfolio=portfolio.to_dict(), token=access_token)
+
 
 @views.route("/users/", methods=['GET'])
 @jwt_required()
@@ -315,6 +319,7 @@ def create_get_social_links():
         social_links = [social_link.to_dict() for social_link in SocialLink.query.all()]
         return jsonify(social_links)
     elif request.method == 'POST':
+
         link_type = request.form['link_type']
         link_value = request.form['link_value']
         portfolio_id = int(request.form['portfolio_id'])
@@ -871,7 +876,6 @@ def get_create_projects():
             new_pic = f"{new_filename()}{get_file_extension(uploaded_file.filename)}"
             uploaded_file.save(os.path.join(current_app.config['IMG_UPLOAD_FOLDER'], new_pic))
             project.image = new_pic
-            print(project.image)
             db.session.commit()
 
         response = make_response(jsonify({"message": "Added New Project"}))
